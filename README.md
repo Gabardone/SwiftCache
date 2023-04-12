@@ -1,2 +1,3 @@
-# BaseTemplate
-Basic Template Repo for further projects
+# RemoteResourceCache
+
+A description of this package.
