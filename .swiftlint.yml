@@ -1,0 +1,34 @@
+identifier_name:
+  excluded: # excluded via string array, include xyz for geometry operations.
+    - id
+    - x
+    - y
+    - z
+    - ok
+
+line_length:
+  ignores_urls: true
+  ignores_interpolated_strings: true
+
+type_name:
+  allowed_symbols:
+    - "_"
+  excluded:
+    - ID
+
+custom_rules:
+  avoid_manually_disabling_TARMiC:
+    regex: 'translatesAutoresizingMaskIntoConstraints = false'
+    message: "Do not manually turn translatesAutoresizingMaskIntoConstraints off, use the managed view hierarchy methods add(subview:) and insert(subview:) instead"
+    match_kinds: identifier
+    
+  avoid_addsubview:
+    regex: 'addSubview\('
+    message: "Do not call `addSubview(...)` directly, use the `add(subview:...)` wrappers instead"
+    match_kinds: identifier
+
+  avoid_insertsubview:
+    regex: 'insertSubview\('
+    message: "Do not call `insertSubview(...)` directly, use the `insert(subview:...)` wrappers instead"
+    match_kinds: identifier
+
