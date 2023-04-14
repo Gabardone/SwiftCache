@@ -13,14 +13,12 @@ import Foundation
  Implementations need to be hashable and uniquely identify a specific resource so they can use for chache mapping.
 
  A given `RemoteResourceCache` will use a specific implementation of the protocol as its `Identifier` type to map in
- memory caching, remote resource retrival, and local storage. The API naming conventions and types presume that remote
- resources can be uniquely reached through a URL and local storage through a combination of an —optional— local
- directory and local file name, but it's possible to coordinate with a custom `ResourceDataProvider` implementation to
- map those values into other sources of data like, for example, a DB.
+ memory caching, remote resource retrival, and local storage. All of the differing identifiers need to be unique for
+ the cache they are contained in.
  - Todo: Consider allowing for generic remote and local types in coordination with `ResourceDataProvider` if Swift's
  treatment of exitentials ever gets to the point where that wouldn't be a gigantic headache.
  */
-protocol RemoteResourceIdentifier: Hashable {
+public protocol ResourceIdentifier: Hashable, Identifiable {
     /**
      The address of the remote resource.
 
@@ -30,27 +28,8 @@ protocol RemoteResourceIdentifier: Hashable {
     var remoteAddress: URL { get }
 
     /**
-     A string that determines a grouping for the local storage of a resource.
-
-     Advanced caches may store related resources (i.e. different sized versions of the same image). Returning a
-     non-`nil` value from this property will let the cache easily group those related versions for a more efficient
-     retrieval later.
+     The identifier to use for the locally stored copy of the resource. Must be unique within its cache and stable.
+     Must be compatible with the requirements of the resource data provider local storage.
      */
-    var localGrouping: String? { get }
-
-    /**
-     The name to use for the locally stored copy of the resource. Must be unique within its grouping (including the
-     `nil` group) and must be stable.
-     */
-    var localName: String { get }
-}
-
-extension RemoteResourceIdentifier {
-    /**
-     The default implementation of `localGrouping` returns nil, which causes all locally persisted copies of the cached
-     data to be grouped together.
-     */
-    var localGrouping: String? {
-        nil
-    }
+    var localIdentifier: String { get }
 }

@@ -8,9 +8,9 @@
 #if canImport(UIKit)
 import UIKit
 
-public typealias RemoteImageCache = RemoteResourceCache<UIImage>
+public typealias RemoteImageCache<Identifier: ResourceIdentifier> = RemoteResourceCache<UIImage, Identifier>
 
-public extension RemoteImageCache {
+public extension RemoteResourceCache where Resource == UIImage {
     struct UnableToDecodeImageFromData: Error {
         var data: Data
 

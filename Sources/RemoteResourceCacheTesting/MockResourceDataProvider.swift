@@ -17,8 +17,8 @@ public struct MockResourceDataProvider: ResourceDataProvider {
     /// Swift made us declare this.
     public init(
         remoteDataOverride: ((URL) async throws -> Data)? = nil,
-        localDataOverride: ((URL) throws -> Data)? = nil,
-        storeLocallyOverride: ((Data, URL) throws -> Void)? = nil
+        localDataOverride: ((String) throws -> Data)? = nil,
+        storeLocallyOverride: ((Data, String) throws -> Void)? = nil
     ) {
         self.remoteDataOverride = remoteDataOverride
         self.localDataOverride = localDataOverride
@@ -30,29 +30,29 @@ public struct MockResourceDataProvider: ResourceDataProvider {
 
     public var remoteDataOverride: ((URL) async throws -> Data)?
 
-    public func remoteData(remoteURL: URL) async throws -> Data {
+    public func remoteData(remoteAddress: URL) async throws -> Data {
         if let remoteDataOverride {
-            return try await remoteDataOverride(remoteURL)
+            return try await remoteDataOverride(remoteAddress)
         } else {
             throw UnimplementedError()
         }
     }
 
-    public var localDataOverride: ((URL) throws -> Data)?
+    public var localDataOverride: ((String) throws -> Data)?
 
-    public func localData(remoteURL: URL) throws -> Data {
+    public func localData(localIdentifier: String) throws -> Data {
         if let localDataOverride {
-            return try localDataOverride(remoteURL)
+            return try localDataOverride(localIdentifier)
         } else {
             throw UnimplementedError()
         }
     }
 
-    public var storeLocallyOverride: ((Data, URL) throws -> Void)?
+    public var storeLocallyOverride: ((Data, String) throws -> Void)?
 
-    public func storeLocally(data: Data, remoteURL: URL) throws {
+    public func storeLocally(data: Data, localIdentifier: String) throws {
         if let storeLocallyOverride {
-            return try storeLocallyOverride(data, remoteURL)
+            return try storeLocallyOverride(data, localIdentifier)
         } else {
             throw UnimplementedError()
         }

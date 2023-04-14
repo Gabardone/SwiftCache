@@ -41,23 +41,25 @@ final class RemoteResourceCacheTests: XCTestCase {
 
     private static let dummyURL = URL(string: "https://zombo.com/")!
 
+    private typealias TestImageCache = RemoteImageCache<UniqueFileNameResourceIdentifier>
+
     // If the data is found locally, we return it and don't do anything else weird.
     func testLocallyStoredImageDataHappyPath() async throws {
         let localDataExpectation = expectation(description: "Grabbing local data")
         let mockImageDataProvider = MockResourceDataProvider { _ in
             XCTFail("Unexpected call to remoteData(imageURL:)")
             return Self.sampleImageData
-        } localDataOverride: { url in
+        } localDataOverride: { localIdentifier in
             localDataExpectation.fulfill()
-            XCTAssertEqual(url, Self.dummyURL)
+            XCTAssertEqual(localIdentifier, Self.dummyURL.lastPathComponent)
             return Self.sampleImageData
         } storeLocallyOverride: { _, _ in
             XCTFail("Unexpected call to storeLocally(data:imageURL:)")
         }
 
-        let imageCache = RemoteImageCache(imageDataProvider: mockImageDataProvider)
+        let imageCache = TestImageCache(imageDataProvider: mockImageDataProvider)
 
-        let image = try await imageCache.fetchResource(remoteURL: Self.dummyURL).value
+        let image = try await imageCache.fetchResourceWith(identifier: .init(Self.dummyURL)).value
 
         await fulfillment(of: [localDataExpectation])
 
@@ -84,9 +86,9 @@ final class RemoteResourceCacheTests: XCTestCase {
             localStoreExpectation.fulfill()
         }
 
-        let imageCache = RemoteImageCache(imageDataProvider: mockImageDataProvider)
+        let imageCache = TestImageCache(imageDataProvider: mockImageDataProvider)
 
-        let image = try await imageCache.fetchResource(remoteURL: Self.dummyURL).value
+        let image = try await imageCache.fetchResourceWith(identifier: .init(Self.dummyURL)).value
 
         await fulfillment(of: [localDataExpectation, remoteDataExpectation, localStoreExpectation])
 
@@ -113,9 +115,9 @@ final class RemoteResourceCacheTests: XCTestCase {
             localStoreExpectation.fulfill()
         }
 
-        let imageCache = RemoteImageCache(imageDataProvider: mockImageDataProvider)
+        let imageCache = TestImageCache(imageDataProvider: mockImageDataProvider)
 
-        let image = try await imageCache.fetchResource(remoteURL: Self.dummyURL).value
+        let image = try await imageCache.fetchResourceWith(identifier: .init(Self.dummyURL)).value
 
         await fulfillment(of: [localDataExpectation, remoteDataExpectation, localStoreExpectation])
 
@@ -142,13 +144,13 @@ final class RemoteResourceCacheTests: XCTestCase {
             XCTFail("We shouldn't have made it here")
         }
 
-        let imageCache = RemoteImageCache(imageDataProvider: mockImageDataProvider)
+        let imageCache = TestImageCache(imageDataProvider: mockImageDataProvider)
 
         do {
-            _ = try await imageCache.fetchResource(remoteURL: Self.dummyURL).value
+            _ = try await imageCache.fetchResourceWith(identifier: .init(Self.dummyURL)).value
             XCTFail("Shouldn't have made it here")
         } catch {
-            XCTAssert(error is RemoteImageCache.UnableToDecodeImageFromData)
+            XCTAssert(error is TestImageCache.UnableToDecodeImageFromData)
         }
 
         await fulfillment(of: [localDataExpectation, remoteDataExpectation])

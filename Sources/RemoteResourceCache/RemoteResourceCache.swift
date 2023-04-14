@@ -27,7 +27,7 @@ import Foundation
  surprisingly less useful than expected in regular app use. For a cache solution like this however they are not an
  obstacle, so this is an easy way to guarantee cache correctness and avoid accidental repeated operations.
  */
-public actor RemoteResourceCache<Resource: AnyObject> {
+public actor RemoteResourceCache<Resource: AnyObject, Identifier: ResourceIdentifier> {
     public typealias DataToResource = (Data) throws -> Resource
 
     public enum CacheError: Error, Equatable {
@@ -44,61 +44,80 @@ public actor RemoteResourceCache<Resource: AnyObject> {
 
     private let dataToResource: (Data) throws -> Resource
 
-    public func fetchResource(remoteURL: URL) throws -> Task<Resource, Error> {
-        if let inMemoryImage = inMemoryResources.object(forKey: remoteURL as NSURL) {
+    public func fetchResourceWith(identifier: Identifier) throws -> Task<Resource, Error> {
+        if let inMemoryImage = inMemoryResources.object(forKey: KeyWrapper(identifier.id)) {
             // Well watcha know we already have it.
             return Task { inMemoryImage }
         }
 
         let fetchTask: Task<Resource, Error>
-        if let inFlightTask = inFlightTasks[remoteURL] {
+        if let inFlightTask = inFlightTasks[identifier.id] {
             fetchTask = inFlightTask
         } else {
             fetchTask = Task { [resourceDataProvider] in
                 let resource: Resource
                 do {
                     // Let's just try to read the data from the file.
-                    let resourceData = try resourceDataProvider.localData(remoteURL: remoteURL)
+                    let resourceData = try resourceDataProvider.localData(localIdentifier: identifier.localIdentifier)
 
                     // Let's make sure we can still decode the image proper.
                     resource = try dataToResource(resourceData)
                 } catch {
                     // If we couldn't get the data from the file we'll have to download it.
-                    let resourceData = try await resourceDataProvider.remoteData(remoteURL: remoteURL)
+                    let resourceData = try await resourceDataProvider.remoteData(remoteAddress: identifier.remoteAddress)
 
                     // We don't want to store the data locally if we can't decode it into an UIImage.
                     let decodedResource = try dataToResource(resourceData)
 
                     // Time to store locally for future tasks to find earlier.
-                    try resourceDataProvider.storeLocally(data: resourceData, remoteURL: remoteURL)
+                    try resourceDataProvider.storeLocally(
+                        data: resourceData,
+                        localIdentifier: identifier.localIdentifier
+                    )
 
                     resource = decodedResource
                 }
 
                 // Update the in-memory storage. We're in an actor so this should be orderly.
                 // Starting with `inMemoryResources` means that even if there's reentrancy it will do the right thing.
-                inMemoryResources.setObject(resource, forKey: remoteURL as NSURL)
+                inMemoryResources.setObject(resource, forKey: KeyWrapper(identifier.id))
 
                 // Now that everything is in place we can remove this oversized task as to free resources.
-                inFlightTasks.removeValue(forKey: remoteURL)
+                inFlightTasks.removeValue(forKey: identifier.id)
 
                 return resource
             }
 
             // The task won't start running until we're done with this method. Store it in case someone else asks for
             // this `imageURL` before the task is done.
-            inFlightTasks[remoteURL] = fetchTask
+            inFlightTasks[identifier.id] = fetchTask
         }
 
         return fetchTask
     }
 
     /// Once again using the jankiest class in Foundation because it's the one officially supported weak dictionary.
-    private let inMemoryResources = NSMapTable<NSURL, Resource>.strongToWeakObjects()
+    private let inMemoryResources = NSMapTable<KeyWrapper, Resource>.strongToWeakObjects()
 
     /**
      This keeps around the current in flight tasks so we don't accidentally try to download or read from file the
      same image more than once.
      */
-    private var inFlightTasks = [URL: Task<Resource, Error>]()
+    private var inFlightTasks = [Identifier.ID: Task<Resource, Error>]()
+
+    private final class KeyWrapper: Hashable {
+        init(_ wrapped: Identifier.ID) {
+            self.wrapped = wrapped
+        }
+
+        let wrapped: Identifier.ID
+
+        func hash(into hasher: inout Hasher) {
+            hasher.combine(wrapped)
+        }
+
+        static func == (lhs: RemoteResourceCache<Resource, Identifier>.KeyWrapper, rhs: RemoteResourceCache<Resource, Identifier>.KeyWrapper) -> Bool {
+            lhs.wrapped == rhs.wrapped
+        }
+    }
 }

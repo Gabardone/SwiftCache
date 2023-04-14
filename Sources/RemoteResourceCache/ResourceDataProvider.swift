@@ -20,20 +20,20 @@ import Foundation
 public protocol ResourceDataProvider {
     /**
      Fetches the remote data for the image.
-     - Parameter imageURL: The remote URL for the image you want.
+     - Parameter remoteAddress: The remote URL for the image you want.
      - Returns: The image data fetched from remote persistence.
      */
-    func remoteData(remoteURL: URL) async throws -> Data
+    func remoteData(remoteAddress: URL) async throws -> Data
 
     /**
      Fetches the local data for the image.
 
      The method will throw if there's no local data for the image or it can otherwise not be accessed.
-     - Parameter imageURL: The _remote_ URL for the image you want. Local storage location is private but has to
-     be stable for a given `imageURL` value.
+     - Parameter localIdentifier: The identifier to use for local storage and local data retrieval. Must be unique and
+     stable.
      - Returns: The image data fetched from local persistence.
      */
-    func localData(remoteURL: URL) throws -> Data
+    func localData(localIdentifier: String) throws -> Data
 
     /**
      Stores the given data locally for the given `imageURL`
@@ -41,8 +41,8 @@ public protocol ResourceDataProvider {
      Local storage isn't guaranteed to remain for any specific duration of time, but after calling this it should be
      there for a bit.
      - Parameter data: The image data.
-     - Parameter imageURL: The _remote_ URL for the image, which will be the key for uniquely identifying the data in
-     local storage.
+     - Parameter localIdentifier: The identifier to use for local storage and local data retrieval. Must be unique and
+     stable.
      */
-    func storeLocally(data: Data, remoteURL: URL) throws
+    func storeLocally(data: Data, localIdentifier: String) throws
 }
