@@ -155,5 +155,55 @@ final class RemoteResourceCacheTests: XCTestCase {
 
         await fulfillment(of: [localDataExpectation, remoteDataExpectation])
     }
+
+    // Tests that after an error we clean things up well enough to run a successful happy path if it's there.
+    func testRemoteDataIsBadButRetryWorks() async throws {
+        struct LocalDummyError: Error {}
+        struct RemoteDummyError: Error {}
+
+        let localDataExpectation = expectation(description: "Attempting to grab local data")
+        let remoteFailureDataExpectation = expectation(description: "Grabbing remote data and failing")
+        let mockImageDataProvider = MockResourceDataProvider { _ in
+            remoteFailureDataExpectation.fulfill()
+            return Self.badImageData
+        } localDataOverride: { _ in
+            localDataExpectation.fulfill()
+            throw LocalDummyError()
+        } storeLocallyOverride: { _, _ in
+            XCTFail("We shouldn't have made it here")
+        }
+
+        let imageCache = TestImageCache(imageDataProvider: mockImageDataProvider)
+
+        do {
+            _ = try await imageCache.fetchResourceWith(identifier: .init(Self.dummyURL)).value
+            XCTFail("Shouldn't have made it here")
+        } catch {
+            XCTAssert(error is TestImageCache.UnableToDecodeImageFromData)
+        }
+
+        await fulfillment(of: [localDataExpectation, remoteFailureDataExpectation])
+
+        let remoteSuccessDataExpectation = expectation(description: "Grabbing remote data and succeeding")
+        mockImageDataProvider.remoteDataOverride = { _ in
+            remoteSuccessDataExpectation.fulfill()
+            return Self.sampleImageData
+        }
+
+        let localDataExpectationRetry = expectation(description: "Attempting to grab local data _again_")
+        mockImageDataProvider.localDataOverride = { _ in
+            localDataExpectationRetry.fulfill()
+            throw LocalDummyError()
+        }
+
+        let storeLocallyExpectation = expectation(description: "Storing this time")
+        mockImageDataProvider.storeLocallyOverride = { _, _ in
+            storeLocallyExpectation.fulfill()
+        }
+
+        _ = try await imageCache.fetchResourceWith(identifier: .init(Self.dummyURL)).value
+
+        await fulfillment(of: [remoteSuccessDataExpectation, localDataExpectationRetry, storeLocallyExpectation])
+    }
 }
 #endif

@@ -8,10 +8,15 @@
 import Foundation
 
 /**
- The default implementation of `ImageDataProvider` uses `URLSession` to download remote content and stores local
- data in the app's `FileManager.default.temporaryFolder`, using unique file names based on its URL UUID and name.
+ This default implementation of `ResourceDataProvider` uses `URLSession` to download remote content based on a `URL` and
+ locally stores data in the app's `FileManager.default.temporaryFolder`, expecting the `localIdentifier` to be both
+ unique and a valid file name.
  */
 public struct DefaultResourceDataProvider: ResourceDataProvider {
+    public typealias RemoteAddress = URL
+
+    public typealias LocalIdentifier = String
+
     public init() {}
 
     public func remoteData(remoteAddress: URL) async throws -> Data {

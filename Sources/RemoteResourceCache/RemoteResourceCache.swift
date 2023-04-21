@@ -35,12 +35,15 @@ public actor RemoteResourceCache<Resource: AnyObject, Identifier: ResourceIdenti
         case unableToDecodeRemoteData
     }
 
-    public init(resourceDataProvider: ResourceDataProvider, dataToResource: @escaping DataToResource) {
-        self.resourceDataProvider = resourceDataProvider
+    public init<RDP>(resourceDataProvider: RDP, dataToResource: @escaping DataToResource) where
+        RDP: ResourceDataProvider,
+        RDP.LocalIdentifier == Identifier.LocalIdentifier,
+        RDP.RemoteAddress == Identifier.RemoteAddress {
+        self.resourceDataProvider = .init(wrapping: resourceDataProvider)
         self.dataToResource = dataToResource
     }
 
-    private let resourceDataProvider: any ResourceDataProvider
+    private let resourceDataProvider: AnyResourceDataProvider<Identifier.RemoteAddress, Identifier.LocalIdentifier>
 
     private let dataToResource: (Data) throws -> Resource
 
@@ -55,22 +58,31 @@ public actor RemoteResourceCache<Resource: AnyObject, Identifier: ResourceIdenti
             fetchTask = inFlightTask
         } else {
             fetchTask = Task { [resourceDataProvider] in
+                // However way we end this we'll want to remove the task so it can be retried or otherwise cleaned up.
+                defer {
+                    inFlightTasks.removeValue(forKey: identifier.id)
+                }
+
                 let resource: Resource
                 do {
                     // Let's just try to read the data from the file.
-                    let resourceData = try resourceDataProvider.localData(localIdentifier: identifier.localIdentifier)
+                    let resourceData = try await resourceDataProvider.localData(
+                        localIdentifier: identifier.localIdentifier
+                    )
 
                     // Let's make sure we can still decode the image proper.
                     resource = try dataToResource(resourceData)
                 } catch {
                     // If we couldn't get the data from the file we'll have to download it.
-                    let resourceData = try await resourceDataProvider.remoteData(remoteAddress: identifier.remoteAddress)
+                    let resourceData = try await resourceDataProvider.remoteData(
+                        remoteAddress: identifier.remoteAddress
+                    )
 
                     // We don't want to store the data locally if we can't decode it into an UIImage.
                     let decodedResource = try dataToResource(resourceData)
 
                     // Time to store locally for future tasks to find earlier.
-                    try resourceDataProvider.storeLocally(
+                    try await resourceDataProvider.storeLocally(
                         data: resourceData,
                         localIdentifier: identifier.localIdentifier
                     )
@@ -81,9 +93,6 @@ public actor RemoteResourceCache<Resource: AnyObject, Identifier: ResourceIdenti
                 // Update the in-memory storage. We're in an actor so this should be orderly.
                 // Starting with `inMemoryResources` means that even if there's reentrancy it will do the right thing.
                 inMemoryResources.setObject(resource, forKey: KeyWrapper(identifier.id))
-
-                // Now that everything is in place we can remove this oversized task as to free resources.
-                inFlightTasks.removeValue(forKey: identifier.id)
 
                 return resource
             }
@@ -105,6 +114,9 @@ public actor RemoteResourceCache<Resource: AnyObject, Identifier: ResourceIdenti
      */
     private var inFlightTasks = [Identifier.ID: Task<Resource, Error>]()
 
+    /**
+     `NSMapTable` only accepts objects as keys so we need to make sure we use one as such.
+     */
     private final class KeyWrapper: Hashable {
         init(_ wrapped: Identifier.ID) {
             self.wrapped = wrapped
@@ -116,7 +128,10 @@ public actor RemoteResourceCache<Resource: AnyObject, Identifier: ResourceIdenti
             hasher.combine(wrapped)
         }
 
-        static func == (lhs: RemoteResourceCache<Resource, Identifier>.KeyWrapper, rhs: RemoteResourceCache<Resource, Identifier>.KeyWrapper) -> Bool {
+        static func == (
+            lhs: RemoteResourceCache<Resource, Identifier>.KeyWrapper,
+            rhs: RemoteResourceCache<Resource, Identifier>.KeyWrapper
+        ) -> Bool {
             lhs.wrapped == rhs.wrapped
         }
     }

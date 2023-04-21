@@ -12,8 +12,10 @@ import RemoteResourceCache
  Simple mock resource data provider for testing purposes.
 
  Set up its override blocks to specify the behavior you want.
+
+ Declared as a reference type so the overrides can be "safely" swapped during a test.
  */
-public struct MockResourceDataProvider: ResourceDataProvider {
+public class MockResourceDataProvider: ResourceDataProvider {
     /// Swift made us declare this.
     public init(
         remoteDataOverride: ((URL) async throws -> Data)? = nil,

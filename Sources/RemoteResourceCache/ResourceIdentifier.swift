@@ -19,17 +19,21 @@ import Foundation
  treatment of exitentials ever gets to the point where that wouldn't be a gigantic headache.
  */
 public protocol ResourceIdentifier: Hashable, Identifiable {
+    associatedtype RemoteAddress: Hashable
+
     /**
      The address of the remote resource.
 
      Just because it's a URL doesn't mean it has to be a network resource, but in any case the meaning of the URL will
      need to be coordinated with the cache's resource data provider.
      */
-    var remoteAddress: URL { get }
+    var remoteAddress: RemoteAddress { get }
+
+    associatedtype LocalIdentifier: Hashable
 
     /**
      The identifier to use for the locally stored copy of the resource. Must be unique within its cache and stable.
      Must be compatible with the requirements of the resource data provider local storage.
      */
-    var localIdentifier: String { get }
+    var localIdentifier: LocalIdentifier { get }
 }

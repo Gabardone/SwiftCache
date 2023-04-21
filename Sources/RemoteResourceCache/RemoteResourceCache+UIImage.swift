@@ -27,7 +27,8 @@ public extension RemoteResourceCache where Resource == UIImage {
      to an instance of `DefaultResourceDataProvider`
      - Returns: A newly created remote image cache.
      */
-    init(imageDataProvider: ResourceDataProvider = DefaultResourceDataProvider()) {
+    init<RDP>(imageDataProvider: RDP) where RDP: ResourceDataProvider,
+        RDP.LocalIdentifier == Identifier.LocalIdentifier, RDP.RemoteAddress == Identifier.RemoteAddress {
         self.init(resourceDataProvider: imageDataProvider) { imageData in
             guard let image = UIImage(data: imageData) else {
                 throw UnableToDecodeImageFromData(data: imageData)
