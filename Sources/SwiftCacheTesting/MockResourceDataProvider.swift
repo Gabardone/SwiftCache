@@ -1,12 +1,12 @@
 //
 //  MockResourceDataProvider.swift
-//  RemoteResourceCache
+//  SwiftCache
 //
 //  Created by Óscar Morales Vivó on 4/11/23.
 //
 
 import Foundation
-import RemoteResourceCache
+import SwiftCache
 
 /**
  Simple mock resource data provider for testing purposes.

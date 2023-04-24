@@ -1,16 +1,16 @@
 //
-//  RemoteResourceCacheTests.swift
-//  RemoteResourceCacheTests
+//  SwiftCacheTests.swift
+//  SwiftCacheTests
 //
 //  Created by Óscar Morales Vivó on 4/11/23.
 //
 
 #if canImport(UIKit)
-import RemoteResourceCache
-import RemoteResourceCacheTesting
+import SwiftCache
+import SwiftCacheTesting
 import XCTest
 
-final class RemoteResourceCacheTests: XCTestCase {
+final class SwiftCacheTests: XCTestCase {
     private static let sampleImage: UIImage = {
         let imageSize = CGSize(width: 256.0, height: 256.0)
         let imageRenderer = UIGraphicsImageRenderer(size: imageSize)
