@@ -15,48 +15,47 @@ import SwiftCache
 
  Declared as a reference type so the overrides can be "safely" swapped during a test.
  */
-public class MockResourceDataProvider: ResourceDataProvider {
+public class MockStorage<Stored, StorageID: Hashable> {
+
     /// Swift made us declare this.
     public init(
-        remoteDataOverride: ((URL) async throws -> Data)? = nil,
-        localDataOverride: ((String) throws -> Data)? = nil,
-        storeLocallyOverride: ((Data, String) throws -> Void)? = nil
+        storeOverride: ((Stored, StorageID) async throws -> Void)?,
+        storedValueForOverride: ((StorageID) async throws -> Stored)?
     ) {
-        self.remoteDataOverride = remoteDataOverride
-        self.localDataOverride = localDataOverride
-        self.storeLocallyOverride = storeLocallyOverride
+        self.storeOverride = storeOverride
+        self.storedValueForOverride = storedValueForOverride
     }
+
+    // MARK: - Types
 
     /// Error thrown when a method is called with no override set.
     struct UnimplementedError: Error {}
 
-    public var remoteDataOverride: ((URL) async throws -> Data)?
+    // MARK: - Stored Properties
 
-    public func remoteData(remoteAddress: URL) async throws -> Data {
-        if let remoteDataOverride {
-            return try await remoteDataOverride(remoteAddress)
-        } else {
+    public var storeOverride: ((Stored, StorageID) async throws -> Void)?
+
+    public var storedValueForOverride: ((StorageID) async throws -> Stored)?
+}
+
+extension MockStorage: Storage {
+    public typealias Stored = Stored
+
+    public typealias StorageID = StorageID
+
+    public func store(value: Stored, identifier: StorageID) async throws {
+        guard let storeOverride else {
             throw UnimplementedError()
         }
+
+        try await storeOverride(value, identifier)
     }
 
-    public var localDataOverride: ((String) throws -> Data)?
-
-    public func localData(localIdentifier: String) throws -> Data {
-        if let localDataOverride {
-            return try localDataOverride(localIdentifier)
-        } else {
+    public func storedValueFor(identifier: StorageID) async throws -> Stored? {
+        guard let storedValueForOverride else {
             throw UnimplementedError()
         }
-    }
 
-    public var storeLocallyOverride: ((Data, String) throws -> Void)?
-
-    public func storeLocally(data: Data, localIdentifier: String) throws {
-        if let storeLocallyOverride {
-            return try storeLocallyOverride(data, localIdentifier)
-        } else {
-            throw UnimplementedError()
-        }
+        return try await storedValueForOverride(identifier)
     }
 }
