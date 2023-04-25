@@ -1,5 +1,5 @@
 //
-//  NetworkDataStorage.swift
+//  NetworkReadOnlyDataStorage.swift
 //
 //
 //  Created by Óscar Morales Vivó on 4/23/23.
@@ -19,14 +19,14 @@ import os
 
  URLs are meant to be web URLs, the storage logic doesn't know how to deal with other request responses.
  */
-public struct NetworkDataStorage {
+public struct NetworkReadOnlyDataStorage {
     /**
      Initializer with a `URLSession`
 
-     Since a `NetworkDataStorage` is meant to backstop a cache chain, if no url session is provided it will default to
-     an ephemeral one that does no caching on the assumption that the rest of the cache chain will deal with the kinds
-     of caching that `URLSession` would do by default. But if a different behavior is desired a different, either shared
-     or unique `URLSession` can be passed in.
+     Since a `NetworkReadOnlyDataStorage` is meant to backstop a cache chain, if no url session is provided it will
+     default to an ephemeral one that does no caching on the assumption that the rest of the cache chain will deal with
+     the kinds of caching that `URLSession` would do by default. But if a different behavior is desired a different,
+     either shared or unique `URLSession` can be passed in.
      - Parameter urlSession: The URL Session that is used to retrieve data. If `nil` is passed in a shared non-caching
      ephemeral session will be used
      */
@@ -57,7 +57,7 @@ public struct NetworkDataStorage {
 
 // MARK: - ReadOnlyStorage Adoption
 
-extension NetworkDataStorage: ReadOnlyStorage {
+extension NetworkReadOnlyDataStorage: ReadOnlyStorage {
     public typealias Stored = Data
 
     public typealias StorageID = URL
