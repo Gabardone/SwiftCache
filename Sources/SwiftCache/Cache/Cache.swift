@@ -41,35 +41,3 @@ public protocol Cache<Cached, CacheID>: Actor {
      */
     func cachedValueWith(identifier: CacheID) async throws -> Cached?
 }
-
-/**
- An error thrown when a cached value that should be available is not.
-
- APIs that expect cached values to be found (i.e. your typical cache chain backstopped by a network backend) will
- `throw` this error instead of returning `nil` when a value is requested that cannot be found. The error packs in the
- cache ID.
- */
-public struct CachedValueNotFound<ResourceID>: Error {
-    var cacheID: ResourceID
-
-    var localizedDescription: String {
-        "Cached value for ID \(String(describing: cacheID)) could not be found."
-    }
-}
-
-public extension Cache {
-    /**
-     Attempts to fetch a resource from a cache, presuming it should be there.
-
-     This is the method you will normally use when attempting to fetch a resource from a cache that is expected to
-     contain it. The implementation for `Cache` will just `throw` if the resource is not found. A chainable
-     cache will instead attempt to fetch the resource from the next cache in the chain.
-     */
-    func fetchResourceWith(identifier: CacheID) async throws -> Cached {
-        if let cached = try await cachedValueWith(identifier: identifier) {
-            return cached
-        } else {
-            throw CachedValueNotFound(cacheID: identifier)
-        }
-    }
-}
