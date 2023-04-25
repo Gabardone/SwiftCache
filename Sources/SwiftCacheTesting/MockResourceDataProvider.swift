@@ -18,8 +18,8 @@ import SwiftCache
 public class MockStorage<Stored, StorageID: Hashable> {
     /// Swift made us declare this.
     public init(
-        storeOverride: ((Stored, StorageID) async throws -> Void)?,
-        storedValueForOverride: ((StorageID) async throws -> Stored)?
+        storeOverride: ((Stored, StorageID) async throws -> Void)? = nil,
+        storedValueForOverride: ((StorageID) async throws -> Stored)? = nil
     ) {
         self.storeOverride = storeOverride
         self.storedValueForOverride = storedValueForOverride
@@ -34,7 +34,7 @@ public class MockStorage<Stored, StorageID: Hashable> {
 
     public var storeOverride: ((Stored, StorageID) async throws -> Void)?
 
-    public var storedValueForOverride: ((StorageID) async throws -> Stored)?
+    public var storedValueForOverride: ((StorageID) async throws -> Stored?)?
 }
 
 extension MockStorage: Storage {
