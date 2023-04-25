@@ -16,7 +16,6 @@ import SwiftCache
  Declared as a reference type so the overrides can be "safely" swapped during a test.
  */
 public class MockStorage<Stored, StorageID: Hashable> {
-
     /// Swift made us declare this.
     public init(
         storeOverride: ((Stored, StorageID) async throws -> Void)?,

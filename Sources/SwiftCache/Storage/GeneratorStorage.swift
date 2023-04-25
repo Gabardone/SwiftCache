@@ -1,6 +1,6 @@
 //
 //  GeneratorStorage.swift
-//  
+//
 //
 //  Created by Óscar Morales Vivó on 4/24/23.
 //
