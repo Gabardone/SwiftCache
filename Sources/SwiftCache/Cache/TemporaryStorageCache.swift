@@ -22,17 +22,17 @@ public actor TemporaryStorageCache<Cached, CacheID: Hashable, Next: Cache, Store
      cache.
      - Parameter next: The next cache in the chain. Immutable once set. If `nil`, this will be the last cache in the
      cache chain.
+     - Parameter storage: The storage used to store and fetch cached values.
      - Parameter nextConverter: An injectable block that converts values from the next cache into values that can be
      stored and returned by self.
-     - Parameter storage: The storage used to store and fetch cached values.
      - Parameter idConverter: A block that converts cache IDs to storage IDs for the cache's storage.
      - Parameter fromStorageConverter: A block that converts storage values into cache values.
      - Parameter toStorageConverter: A block that converts cache values into storage values.
      */
     public init(
         next: Next?,
-        nextConverter: @escaping NextConverter,
         storage: some Storage<Stored, StorageID>,
+        nextConverter: @escaping NextConverter,
         idConverter: @escaping IDConverter,
         fromStorageConverter: @escaping FromStorageConverter,
         toStorageConverter: @escaping ToStorageConverter
@@ -126,8 +126,8 @@ public extension TemporaryStorageCache where Next.Cached == Cached {
     ) {
         self.init(
             next: next,
-            nextConverter: { $0 },
             storage: storage,
+            nextConverter: { $0 },
             idConverter: idConverter,
             fromStorageConverter: fromStorageConverter,
             toStorageConverter: toStorageConverter
@@ -138,15 +138,15 @@ public extension TemporaryStorageCache where Next.Cached == Cached {
 public extension TemporaryStorageCache where CacheID == StorageID {
     init(
         next: Next?,
-        nextConverter: @escaping NextConverter,
         storage: some Storage<Stored, StorageID>,
+        nextConverter: @escaping NextConverter,
         fromStorageConverter: @escaping FromStorageConverter,
         toStorageConverter: @escaping ToStorageConverter
     ) {
         self.init(
             next: next,
-            nextConverter: nextConverter,
             storage: storage,
+            nextConverter: nextConverter,
             idConverter: { $0 },
             fromStorageConverter: fromStorageConverter,
             toStorageConverter: toStorageConverter
@@ -157,14 +157,14 @@ public extension TemporaryStorageCache where CacheID == StorageID {
 public extension TemporaryStorageCache where Cached == Stored {
     init(
         next: Next?,
-        nextConverter: @escaping NextConverter,
         storage: some Storage<Stored, StorageID>,
+        nextConverter: @escaping NextConverter,
         idConverter: @escaping IDConverter
     ) {
         self.init(
             next: next,
-            nextConverter: nextConverter,
             storage: storage,
+            nextConverter: nextConverter,
             idConverter: idConverter,
             fromStorageConverter: { $0 },
             toStorageConverter: { $0 }
@@ -173,11 +173,11 @@ public extension TemporaryStorageCache where Cached == Stored {
 }
 
 public extension TemporaryStorageCache where CacheID == StorageID, Cached == Stored {
-    init(next: Next?, nextConverter: @escaping NextConverter, storage: some Storage<Stored, StorageID>) {
+    init(next: Next?, storage: some Storage<Stored, StorageID>, nextConverter: @escaping NextConverter) {
         self.init(
             next: next,
-            nextConverter: nextConverter,
             storage: storage,
+            nextConverter: nextConverter,
             idConverter: { $0 },
             fromStorageConverter: { $0 },
             toStorageConverter: { $0 }
@@ -186,16 +186,11 @@ public extension TemporaryStorageCache where CacheID == StorageID, Cached == Sto
 }
 
 public extension TemporaryStorageCache where Next.Cached == Cached, Cached == Stored {
-    init(
-        next: Next?,
-        nextConverter _: @escaping NextConverter,
-        storage: some Storage<Stored, StorageID>,
-        idConverter: @escaping IDConverter
-    ) {
+    init(next: Next?, storage: some Storage<Stored, StorageID>, idConverter: @escaping IDConverter) {
         self.init(
             next: next,
-            nextConverter: { $0 },
             storage: storage,
+            nextConverter: { $0 },
             idConverter: idConverter,
             fromStorageConverter: { $0 },
             toStorageConverter: { $0 }
@@ -206,15 +201,15 @@ public extension TemporaryStorageCache where Next.Cached == Cached, Cached == St
 public extension TemporaryStorageCache where Next.Cached == Cached, CacheID == StorageID {
     init(
         next: Next?,
-        nextConverter _: @escaping NextConverter,
         storage: some Storage<Stored, StorageID>,
+        nextConverter: @escaping NextConverter,
         fromStorageConverter: @escaping FromStorageConverter,
         toStorageConverter: @escaping ToStorageConverter
     ) {
         self.init(
             next: next,
-            nextConverter: { $0 },
             storage: storage,
+            nextConverter: nextConverter,
             idConverter: { $0 },
             fromStorageConverter: fromStorageConverter,
             toStorageConverter: toStorageConverter
@@ -226,8 +221,8 @@ public extension TemporaryStorageCache where Next.Cached == Cached, CacheID == S
     init(next: Next?, storage: some Storage<Stored, StorageID>) {
         self.init(
             next: next,
-            nextConverter: { $0 },
             storage: storage,
+            nextConverter: { $0 },
             idConverter: { $0 },
             fromStorageConverter: { $0 },
             toStorageConverter: { $0 }
