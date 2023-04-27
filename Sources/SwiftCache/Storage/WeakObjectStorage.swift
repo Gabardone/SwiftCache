@@ -19,7 +19,7 @@ public actor WeakObjectStorage<Object: AnyObject, StorageID: Hashable> {
      A simple, private wrapper type so non-object and non-Obj-C types can be used with a `NSMapTable`. An implementation
      detail.
      */
-    fileprivate class KeyWrapper {
+    private class KeyWrapper {
         init(wrapping: StorageID) {
             self.wrapping = wrapping
         }

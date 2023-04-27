@@ -87,7 +87,7 @@ extension BackstopStorageCache: Cache {
         }
     }
 
-    public func invalidateCachedValueFor(identifier: CacheID) async throws {
+    public func invalidateCachedValueFor(identifier _: CacheID) async throws {
         // This method intentionally left blank. The Storage doesn't allow for deletion.
     }
 }

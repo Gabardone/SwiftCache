@@ -100,7 +100,8 @@ extension LocalFileDataStorage: Storage {
                     fileURL = rootDirectory.appendingPathComponent(identifier, isDirectory: false)
                 }
                 try FileManager.default.removeItem(at: fileURL)
-            } catch let error as NSError where error.domain == NSCocoaErrorDomain && error.code == NSFileNoSuchFileError {
+            } catch let error as NSError
+                where error.domain == NSCocoaErrorDomain && error.code == NSFileNoSuchFileError {
                 // File not found is fine. We'll let it go.
             }
         }.value
