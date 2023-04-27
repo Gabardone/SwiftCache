@@ -55,7 +55,7 @@ public struct NetworkReadOnlyDataStorage {
 
 // MARK: - ReadOnlyStorage Adoption
 
-extension NetworkReadOnlyDataStorage: ReadOnlyStorage {
+extension NetworkReadOnlyDataStorage: StorageSource {
     public typealias Stored = Data
 
     public typealias StorageID = URL

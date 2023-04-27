@@ -1,5 +1,5 @@
 //
-//  ReadOnlyStorage.swift
+//  StorageSource.swift
 //
 //
 //  Created by Óscar Morales Vivó on 4/22/23.
@@ -18,7 +18,7 @@ import Foundation
  cross-threaded access into an `actor`, using locks for internal state access or by using APIs that are thread safe
  (i.e. `FileManager`, `URLSession`).
  */
-public protocol ReadOnlyStorage<Stored, StorageID> {
+public protocol StorageSource<Stored, StorageID> {
     /**
      The type used for storage.
      */

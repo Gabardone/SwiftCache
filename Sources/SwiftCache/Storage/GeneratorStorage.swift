@@ -38,7 +38,7 @@ public struct GeneratorStorage<Stored, StorageID: Hashable> {
 
 // MARK: - ReadOnlyStorage Adoption
 
-extension GeneratorStorage: ReadOnlyStorage {
+extension GeneratorStorage: StorageSource {
     public typealias Stored = Stored
 
     public typealias StorageID = StorageID

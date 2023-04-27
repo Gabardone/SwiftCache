@@ -50,7 +50,7 @@ public struct LocalFileDataStorage {
 
 // MARK: - ReadOnlyStorage Adoption
 
-extension LocalFileDataStorage: ReadOnlyStorage {
+extension LocalFileDataStorage: StorageSource {
     public typealias Stored = Data
 
     public typealias StorageID = String

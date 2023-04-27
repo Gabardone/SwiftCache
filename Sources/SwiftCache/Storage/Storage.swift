@@ -17,7 +17,7 @@ import Foundation
  perform those operations as to allow for testability and overall abstract away hard dependencies on storage APIs (DBs,
  network, file system…).
  */
-public protocol Storage<Stored, StorageID>: ReadOnlyStorage {
+public protocol Storage<Stored, StorageID>: StorageSource {
     /**
      Stores the given data locally for the given `identifier`
 

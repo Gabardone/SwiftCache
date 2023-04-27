@@ -24,7 +24,7 @@ public actor BackstopStorageCache<Cached, CacheID: Hashable, Stored, StorageID: 
      - Parameter fromStorageConverter: A block that converts storage values into cache values.
      */
     public init(
-        storage: some ReadOnlyStorage<Stored, StorageID>,
+        storage: some StorageSource<Stored, StorageID>,
         idConverter: @escaping IDConverter,
         fromStorageConverter: @escaping FromStorageConverter
     ) {
@@ -48,7 +48,7 @@ public actor BackstopStorageCache<Cached, CacheID: Hashable, Stored, StorageID: 
 
     // MARK: - Stored Properties
 
-    private let storage: any ReadOnlyStorage<Stored, StorageID>
+    private let storage: any StorageSource<Stored, StorageID>
 
     private let idConverter: IDConverter
 

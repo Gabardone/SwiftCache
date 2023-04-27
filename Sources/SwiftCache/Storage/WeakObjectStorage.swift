@@ -32,7 +32,7 @@ public actor WeakObjectStorage<Object: AnyObject, StorageID: Hashable> {
     private let weakObjects = NSMapTable<KeyWrapper, Object>.strongToWeakObjects()
 }
 
-extension WeakObjectStorage: ReadOnlyStorage {
+extension WeakObjectStorage: StorageSource {
     public typealias Stored = Object
 
     public typealias StorageID = StorageID
