@@ -35,6 +35,8 @@ public class MockStorage<Stored, StorageID: Hashable> {
     public var storeOverride: ((Stored, StorageID) async throws -> Void)?
 
     public var storedValueForOverride: ((StorageID) async throws -> Stored?)?
+
+    public var removeValueForOverride: ((StorageID) async throws -> Void)?
 }
 
 extension MockStorage: Storage {
@@ -56,5 +58,13 @@ extension MockStorage: Storage {
         }
 
         return try await storedValueForOverride(identifier)
+    }
+
+    public func removeValueFor(identifier: StorageID) async throws {
+        guard let removeValueForOverride else {
+            throw UnimplementedError()
+        }
+
+        return try await removeValueForOverride(identifier)
     }
 }

@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import os
 
 /**
  A configurable chainable cache that temporarily stores data from its `next` cache and returns it if requested again.
@@ -81,6 +82,8 @@ public actor TemporaryStorageCache<Cached, CacheID: Hashable, Next: Cache, Store
     private let fromStorageConverter: FromStorageConverter
 
     private let toStorageConverter: ToStorageConverter
+
+    private var taskManager = [CacheID: Task<Cached?, Error>]()
 }
 
 // MARK: - Cache Adoption
@@ -91,11 +94,41 @@ extension TemporaryStorageCache: Cache {
     public typealias CacheID = CacheID
 
     public func cachedValueWith(identifier: CacheID) async throws -> Cached? {
-        if let stored = try await storage.storedValueFor(identifier: idConverter(identifier)) {
-            return try await fromStorageConverter(stored)
+        if let ongoingTask = taskManager[identifier] {
+            // Avoid reentrancy, just wait for the ongoing task that is already doing the stuff.
+            return try await ongoingTask.value
         } else {
-            return nil
+            let newTask = Task<Cached?, Error> {
+                defer {
+                    // No matter what happens at the end we want to clear out the task in the manager.
+                    taskManager.removeValue(forKey: identifier)
+                }
+
+                if let stored = try await storage.storedValueFor(identifier: idConverter(identifier)) {
+                    return try await fromStorageConverter(stored)
+                } else if let next, let nextValue = try await next.cachedValueWith(identifier: identifier) {
+                    let value = try await processFromNext(nextValue: nextValue)
+                    do {
+                        try await store(value: value, identifier: identifier)
+                    } catch {
+                        // This is bad but we can still return the value.
+                        Logger.cache.error("TemporaryStorageCache unable to store value with identifier: \(String(describing: identifier)), error: \(error.localizedDescription)")
+                    }
+                    return value
+                } else {
+                    return nil
+                }
+            }
+
+            taskManager[identifier] = newTask
+            return try await newTask.value
         }
+    }
+
+    public func invalidateCachedValueFor(identifier: CacheID) async throws {
+        try await storage.removeValueFor(identifier: idConverter(identifier))
+
+        try await next?.invalidateCachedValueFor(identifier: identifier)
     }
 }
 

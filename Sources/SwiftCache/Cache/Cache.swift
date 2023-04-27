@@ -6,6 +6,14 @@
 //
 
 import Foundation
+import os
+
+/**
+ Module-wide logger object.
+ */
+extension Logger {
+    static let cache = Logger(subsystem: "CacheLogging", category: "SwiftCache")
+}
 
 /**
  An interface to an asynchronous cache of identifiable resources.
@@ -31,13 +39,30 @@ public protocol Cache<Cached, CacheID>: Actor {
     /**
      Returns the cached value for the given value ID in the calling cache.
 
-     The method returns `nil` if the resource can not be found in the calling cache. It may `throw` if the operation of
+     The method returns `nil` if the resource can not be found in the cache. It may `throw` if the operation of
      attempting to fetch the value fails in any other way. The errors thrown (if any) will depend on the cache type.
-
-     You normally don't want to call this method from outside the cache, using instead the `fetch` methods that will
-     dig in chained caches if needed.
      - Parameter identifier: The cache ID for the resource.
      - Returns: The value, or `nil` if not present in the cache.
      */
     func cachedValueWith(identifier: CacheID) async throws -> Cached?
+
+    /**
+     Invalidates (removes) the cached value (if any) for the given identifer.
+
+     While most usage of `Cache` is meant to be for stable caches (same ID always corresponds to same value) there are
+     a few circumstances where invalidating a cached value may be recommended:
+     1. When it is positively known that a value will no longer be needed and we want to free any resources it may be
+     using.
+     2. If there is some corruption or error of the value and we want to retry re-fetching (or re-generating) it again.
+
+     There's no universally valid way for a cache to deal with either case so the method is declared on the API for use
+     when there's no other good way around the need for manual invalidation.
+
+     For caches that generate or get their values from readonly sources the caller should `await` the result of the
+     method for a value before trying to get it again.
+
+     Generating or readonly caches can and will do nothing when this method is called.
+     - Parameter identifier: Identifier for the cache entry we want invalidated.
+     */
+    func invalidateCachedValueFor(identifier: CacheID) async throws
 }

@@ -89,4 +89,20 @@ extension LocalFileDataStorage: Storage {
             }
         }.value
     }
+
+    public func removeValueFor(identifier: String) async throws {
+        try await Task {
+            do {
+                let fileURL: URL
+                if #available(iOS 16, macOS 13, tvOS 16, watchOS 9, *) {
+                    fileURL = rootDirectory.appending(path: identifier, directoryHint: .notDirectory)
+                } else {
+                    fileURL = rootDirectory.appendingPathComponent(identifier, isDirectory: false)
+                }
+                try FileManager.default.removeItem(at: fileURL)
+            } catch let error as NSError where error.domain == NSCocoaErrorDomain && error.code == NSFileNoSuchFileError {
+                // File not found is fine. We'll let it go.
+            }
+        }.value
+    }
 }

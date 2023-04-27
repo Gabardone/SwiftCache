@@ -14,6 +14,9 @@ import Foundation
  in a network backend we'd want to first look in memory, then in temporary storage inside the app's sandbox, and finally
  on the network itself. Each operation is more costly than the prior one but also uses less valuable resources (RAM,
  device storage and network storage in the example given).
+
+ An implementation of `ChainableCache` has to make sure that `next?.cachedValueWith(identifier:)` is called if the
+ requested value is not found in the calling cache's storage itself.
  */
 public protocol ChainableCache: Cache {
     /**

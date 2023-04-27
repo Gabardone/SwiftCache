@@ -44,8 +44,6 @@ public struct NetworkReadOnlyDataStorage {
 
     // MARK: - Stored Properties
 
-    private static let logger = Logger(subsystem: "NetworkStorage", category: "Cache")
-
     private static let defaultSession: URLSession = {
         let configuration = URLSessionConfiguration.ephemeral
         configuration.requestCachePolicy = .reloadIgnoringLocalCacheData
@@ -80,7 +78,7 @@ extension NetworkReadOnlyDataStorage: ReadOnlyStorage {
 
             default:
                 // We still got data to return but will log that the status is unexpected.
-                Self.logger.warning("Received response \(httpResponse.statusCode) for URL \(identifier)")
+                Logger.cache.warning("Received response \(httpResponse.statusCode) for URL \(identifier)")
                 throw NetworkStorageError.invalidHTTPResponseStatus(httpResponse.statusCode)
             }
         } else {

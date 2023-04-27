@@ -27,4 +27,13 @@ public protocol Storage<Stored, StorageID>: ReadOnlyStorage {
      - Parameter identifier: An identifier that uniquely identifies the value to store for later retrieval.
      */
     func store(value: Stored, identifier: StorageID) async throws
+
+    /**
+     Removes the value for the given identifier, if found.
+
+     The method will just return if the value is not in storage. And it will throw if removal failes (i.e. file storage
+     deletion fails).
+     - Parameter identifier: An identifier that uniquely identifies the value we want to remove.
+     */
+    func removeValueFor(identifier: StorageID) async throws
 }

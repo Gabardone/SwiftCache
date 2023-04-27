@@ -53,6 +53,8 @@ public actor BackstopStorageCache<Cached, CacheID: Hashable, Stored, StorageID: 
     private let idConverter: IDConverter
 
     private let fromStorageConverter: FromStorageConverter
+
+    private var taskManager = [CacheID: Task<Cached?, Error>]()
 }
 
 // MARK: - Cache Adoption
@@ -63,11 +65,30 @@ extension BackstopStorageCache: Cache {
     public typealias CacheID = CacheID
 
     public func cachedValueWith(identifier: CacheID) async throws -> Cached? {
-        if let stored = try await storage.storedValueFor(identifier: idConverter(identifier)) {
-            return try await fromStorageConverter(stored)
+        if let ongoingTask = taskManager[identifier] {
+            // Avoid reentrancy, just wait for the ongoing task that is already doing the stuff.
+            return try await ongoingTask.value
         } else {
-            return nil
+            let newTask = Task<Cached?, Error> {
+                defer {
+                    // No matter what happens at the end we want to clear out the task in the manager.
+                    taskManager.removeValue(forKey: identifier)
+                }
+
+                if let stored = try await storage.storedValueFor(identifier: idConverter(identifier)) {
+                    return try await fromStorageConverter(stored)
+                } else {
+                    return nil
+                }
+            }
+
+            taskManager[identifier] = newTask
+            return try await newTask.value
         }
+    }
+
+    public func invalidateCachedValueFor(identifier: CacheID) async throws {
+        // This method intentionally left blank. The Storage doesn't allow for deletion.
     }
 }
 

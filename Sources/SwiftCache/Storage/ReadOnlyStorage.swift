@@ -12,6 +12,11 @@ import Foundation
 
  Caches that fetch data from storage should use a façaded `ReadOnlyProvider` to perform those operations as to allow
  for testability and overall abstract away hard dependencies on storage APIs (DBs, network, file system…).
+
+ A storage must be safe against reentrance for different identifiers since it may get several simultaneous requests
+ from a cache. This can either be accomplished by making an adopting type with internal storage that is unsafe against
+ cross-threaded access into an `actor`, using locks for internal state access or by using APIs that are thread safe
+ (i.e. `FileManager`, `URLSession`).
  */
 public protocol ReadOnlyStorage<Stored, StorageID> {
     /**
