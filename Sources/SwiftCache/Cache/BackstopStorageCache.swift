@@ -96,7 +96,7 @@ extension BackstopStorageCache: Cache {
 
 public extension BackstopStorageCache where CacheID == StorageID {
     init(
-        storage: some Storage<Stored, StorageID>,
+        storage: some StorageSource<Stored, StorageID>,
         fromStorageConverter: @escaping FromStorageConverter
     ) {
         self.init(
@@ -108,7 +108,7 @@ public extension BackstopStorageCache where CacheID == StorageID {
 }
 
 public extension BackstopStorageCache where Cached == Stored {
-    init(storage: some Storage<Stored, StorageID>, idConverter: @escaping IDConverter) {
+    init(storage: some StorageSource<Stored, StorageID>, idConverter: @escaping IDConverter) {
         self.init(
             storage: storage,
             idConverter: idConverter,
@@ -118,7 +118,7 @@ public extension BackstopStorageCache where Cached == Stored {
 }
 
 public extension BackstopStorageCache where CacheID == StorageID, Cached == Stored {
-    init(storage: some Storage<Stored, StorageID>) {
+    init(storage: some StorageSource<Stored, StorageID>) {
         self.init(
             storage: storage,
             idConverter: { $0 },
