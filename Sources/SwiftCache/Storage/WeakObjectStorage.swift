@@ -15,6 +15,10 @@ import Foundation
  The type is an `actor` as to ensure thread safety for access to its internal storage.
  */
 public actor WeakObjectStorage<Object: AnyObject, StorageID: Hashable> {
+    public init() {}
+
+    // MARK: - Types
+
     /**
      A simple, private wrapper type so non-object and non-Obj-C types can be used with a `NSMapTable`. An implementation
      detail.
