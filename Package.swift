@@ -6,8 +6,10 @@ import PackageDescription
 let package = Package(
     name: "SwiftCache",
     platforms: [
+        // Minimum deployment version currently set by `Logger` release version.
         .iOS(.v14),
         .macOS(.v12),
+        .macCatalyst(.v14),
         .tvOS(.v14),
         .watchOS(.v7)
     ],
