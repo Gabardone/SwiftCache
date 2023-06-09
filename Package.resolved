@@ -1,0 +1,23 @@
+{
+  "pins" : [
+    {
+      "identity" : "globaldependencies",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/Gabardone/GlobalDependencies",
+      "state" : {
+        "revision" : "dca8fb31eb9d6efc42b454aa4a5ea812d7d74c23",
+        "version" : "2.0.0"
+      }
+    },
+    {
+      "identity" : "networkdependency",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/Gabardone/NetworkDependency.git",
+      "state" : {
+        "revision" : "2767534c04504feb2f1e7809288bb61f20c03908",
+        "version" : "1.0.0"
+      }
+    }
+  ],
+  "version" : 2
+}
