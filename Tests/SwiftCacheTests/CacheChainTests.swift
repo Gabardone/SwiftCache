@@ -5,9 +5,8 @@
 //  Created by Óscar Morales Vivó on 4/11/23.
 //
 
-#if canImport(UIKit)
+#if canImport(UIKit) && !os(watchOS)
 import SwiftCache
-import SwiftCacheTesting
 import XCTest
 
 final class CacheChainTests: XCTestCase {
@@ -41,11 +40,11 @@ final class CacheChainTests: XCTestCase {
 
     private static let dummyURL = URL(string: "https://zombo.com/")!
 
-    private typealias MockImageStorage = MockStorage<UIImage, URL>
+    private typealias MockImageStorage = ComposableStorage<UIImage, URL>
 
-    private typealias MockNetworkStorage = MockStorage<Data, URL>
+    private typealias MockNetworkStorage = ComposableStorage<Data, URL>
 
-    private typealias MockLocalStorage = MockStorage<Data, String>
+    private typealias MockLocalStorage = ComposableStorage<Data, String>
 
     private struct MockImageCache {
         var cache: any Cache<UIImage, URL>

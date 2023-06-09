@@ -18,10 +18,6 @@ let package = Package(
         .library(
             name: "SwiftCache",
             targets: ["SwiftCache"]
-        ),
-        .library(
-            name: "SwiftCacheTesting",
-            targets: ["SwiftCacheTesting"]
         )
     ],
     dependencies: [
@@ -35,13 +31,9 @@ let package = Package(
             name: "SwiftCache",
             dependencies: ["NetworkDependency"]
         ),
-        .target(
-            name: "SwiftCacheTesting",
-            dependencies: ["SwiftCache"]
-        ),
         .testTarget(
             name: "SwiftCacheTests",
-            dependencies: ["NetworkDependency", "SwiftCache", "SwiftCacheTesting"]
+            dependencies: ["NetworkDependency", "SwiftCache"]
         )
     ]
 )

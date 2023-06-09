@@ -1,21 +1,22 @@
 //
-//  MockResourceDataProvider.swift
+//  ComposableStorage.swift
 //  SwiftCache
 //
 //  Created by Óscar Morales Vivó on 4/11/23.
 //
 
 import Foundation
-import SwiftCache
 
 /**
- Simple mock resource data provider for testing purposes.
+ Simple storage implementation that can be built by hand.
 
  Set up its override blocks to specify the behavior you want.
 
+ Doubles as a mock type for testing. For real implementations make sure to set up all behaviors.
+
  Declared as a reference type so the overrides can be "safely" swapped during a test.
  */
-public class MockStorage<Stored, StorageID: Hashable> {
+public class ComposableStorage<Stored, StorageID: Hashable> {
     /// Swift made us declare this.
     public init(
         storeOverride: ((Stored, StorageID) async throws -> Void)? = nil,
@@ -39,7 +40,7 @@ public class MockStorage<Stored, StorageID: Hashable> {
     public var removeValueForOverride: ((StorageID) async throws -> Void)?
 }
 
-extension MockStorage: Storage {
+extension ComposableStorage: Storage {
     public typealias Stored = Stored
 
     public typealias StorageID = StorageID
