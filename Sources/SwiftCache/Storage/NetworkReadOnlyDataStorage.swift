@@ -68,11 +68,11 @@ extension NetworkReadOnlyDataStorage: StorageSource {
         let (data, response) = try await urlSession.data(from: identifier)
         if let httpResponse = response as? HTTPURLResponse {
             switch httpResponse.statusCode {
-            case 200:
+            case 200, 203:
                 // Code 200 means everything is cool and we return the data.
                 return data
 
-            case 404:
+            case 204, 404:
                 // Not found means we could as well return `nil`
                 return nil
 
