@@ -5,11 +5,42 @@
 //  Created by Óscar Morales Vivó on 4/11/23.
 //
 
-#if canImport(UIKit)
 import SwiftCache
 import XCTest
 
-final class CacheChainTests: XCTestCase {
+extension CacheChainTests {
+    #if os(macOS)
+    typealias XXImage = NSImage
+
+    private static let sampleImage: NSImage = {
+        let imageSize = CGSize(width: 256.0, height: 256.0)
+        return NSImage(size: imageSize, flipped: false) { rect in
+            NSColor.yellow.setFill()
+            NSBezierPath.fill(rect)
+            NSColor.blue.setFill()
+            NSBezierPath(ovalIn: .init(
+                x: imageSize.width / 8.0,
+                y: imageSize.height / 8.0,
+                width: imageSize.width / 4.0,
+                height: imageSize.height / 4.0
+            )
+            ).fill()
+            NSBezierPath(ovalIn: .init(
+                x: (imageSize.width * 5.0) / 8.0,
+                y: (imageSize.height * 5.0) / 8.0,
+                width: imageSize.width / 4.0,
+                height: imageSize.height / 4.0
+            )
+            ).fill()
+
+            return true
+        }
+    }()
+
+    private static let sampleImageData: Data = sampleImage.tiffRepresentation!
+    #else
+    typealias XXImage = UIImage
+
     private static let sampleImage: UIImage = {
         let imageSize = CGSize(width: 256.0, height: 256.0)
         UIGraphicsBeginImageContext(imageSize)
@@ -40,19 +71,22 @@ final class CacheChainTests: XCTestCase {
     }()
 
     private static let sampleImageData: Data = sampleImage.pngData()!
+    #endif
+}
 
+final class CacheChainTests: XCTestCase {
     private static let badImageData = Data(count: 16)
 
     private static let dummyURL = URL(string: "https://zombo.com/")!
 
-    private typealias MockImageStorage = ComposableStorage<UIImage, URL>
+    private typealias MockImageStorage = ComposableStorage<XXImage, URL>
 
     private typealias MockNetworkStorage = ComposableStorage<Data, URL>
 
     private typealias MockLocalStorage = ComposableStorage<Data, String>
 
     private struct MockImageCache {
-        var cache: any Cache<UIImage, URL>
+        var cache: any Cache<XXImage, URL>
 
         var inMemoryStorage: MockImageStorage
 
@@ -77,7 +111,7 @@ final class CacheChainTests: XCTestCase {
 
         let inMemoryStorage = MockImageStorage()
         let inMemoryCache = TemporaryStorageCache(next: localCache, storage: inMemoryStorage) { data in
-            if let image = UIImage(data: data) {
+            if let image = XXImage(data: data) {
                 return image
             } else {
                 throw ImageConversionError()
@@ -109,8 +143,8 @@ final class CacheChainTests: XCTestCase {
 
             // Check that it's the same image as usual.
             XCTAssertEqual(url, Self.dummyURL)
-            XCTAssertEqual(image.cgImage?.width, Self.sampleImage.cgImage?.width)
-            XCTAssertEqual(image.cgImage?.height, Self.sampleImage.cgImage?.height)
+            XCTAssertEqual(image.size.width, Self.sampleImage.size.width)
+            XCTAssertEqual(image.size.height, Self.sampleImage.size.height)
         }
         return inMemoryWriteExpectation
     }
@@ -180,8 +214,8 @@ final class CacheChainTests: XCTestCase {
 
         // Looping image -> data -> image -> data doesn't usually result in equal data or equal images as some config
         // data gets lost, but at least we can check pixel size.
-        XCTAssertEqual(image?.cgImage?.width, Self.sampleImage.cgImage?.width)
-        XCTAssertEqual(image?.cgImage?.height, Self.sampleImage.cgImage?.height)
+        XCTAssertEqual(image?.size.width, Self.sampleImage.size.width)
+        XCTAssertEqual(image?.size.height, Self.sampleImage.size.height)
     }
 
     // If the data is not local, we get remote and store.
@@ -210,8 +244,8 @@ final class CacheChainTests: XCTestCase {
 
         // Looping image -> data -> image -> data doesn't usually result in equal data or equal images as some config
         // data gets lost, but at least we can check pixel size.
-        XCTAssertEqual(image?.cgImage?.width, Self.sampleImage.cgImage?.width)
-        XCTAssertEqual(image?.cgImage?.height, Self.sampleImage.cgImage?.height)
+        XCTAssertEqual(image?.size.width, Self.sampleImage.size.width)
+        XCTAssertEqual(image?.size.height, Self.sampleImage.size.height)
     }
 
     // If the local data is bad we recover by grabbing remote again.
@@ -293,8 +327,8 @@ final class CacheChainTests: XCTestCase {
 
         // Looping image -> data -> image -> data doesn't usually result in equal data or equal images as some config
         // data gets lost, but at least we can check pixel size.
-        XCTAssertEqual(image?.cgImage?.width, Self.sampleImage.cgImage?.width)
-        XCTAssertEqual(image?.cgImage?.height, Self.sampleImage.cgImage?.height)
+        XCTAssertEqual(image?.size.width, Self.sampleImage.size.width)
+        XCTAssertEqual(image?.size.height, Self.sampleImage.size.height)
     }
 
     // Tests that retrying works if local data is corrupted and we inivalidate it.
@@ -357,9 +391,7 @@ final class CacheChainTests: XCTestCase {
 
         // Looping image -> data -> image -> data doesn't usually result in equal data or equal images as some config
         // data gets lost, but at least we can check pixel size.
-        XCTAssertEqual(image?.cgImage?.width, Self.sampleImage.cgImage?.width)
-        XCTAssertEqual(image?.cgImage?.height, Self.sampleImage.cgImage?.height)
+        XCTAssertEqual(image?.size.width, Self.sampleImage.size.width)
+        XCTAssertEqual(image?.size.height, Self.sampleImage.size.height)
     }
 }
-
-#endif
