@@ -14,8 +14,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Gabardone/NetworkDependency.git",
       "state" : {
-        "revision" : "2767534c04504feb2f1e7809288bb61f20c03908",
-        "version" : "1.0.0"
+        "revision" : "6bf5e3f9db4bb82990e4c45b71ff0711d06b90af",
+        "version" : "1.0.1"
       }
     }
   ],
