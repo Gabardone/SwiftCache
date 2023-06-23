@@ -1,5 +1,5 @@
 //
-//  NetworkReadOnlyDataStorage.swift
+//  NetworkDataSource.swift
 //
 //
 //  Created by Óscar Morales Vivó on 4/23/23.
@@ -20,7 +20,7 @@ import os
 
  URLs are meant to be web URLs, the storage logic doesn't know how to deal with other request responses.
  */
-public struct NetworkReadOnlyDataStorage {
+public struct NetworkDataSource {
     /**
      Initializer with a `URLSession`
 
@@ -56,16 +56,16 @@ public struct NetworkReadOnlyDataStorage {
 
 // MARK: - ReadOnlyStorage Adoption
 
-extension NetworkReadOnlyDataStorage: StorageSource {
+extension NetworkDataSource: ValueSource {
     public typealias Stored = Data
 
     public typealias StorageID = URL
 
-    public func storedValueFor(identifier: URL) async throws -> Data? {
+    public func valueFor(identifier: URL) async throws -> Data? {
         guard identifier.scheme == "http" || identifier.scheme == "https" else {
             throw NetworkStorageError.unsupportedURLScheme(identifier.scheme)
         }
 
-        return try await dependencies.network.dataTask(url: identifier).value
+        return try await dependencies.network.dataFor(url: identifier)
     }
 }

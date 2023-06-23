@@ -20,10 +20,10 @@ public class ComposableStorage<Stored, StorageID: Hashable> {
     /// Swift made us declare this.
     public init(
         storeOverride: ((Stored, StorageID) async throws -> Void)? = nil,
-        storedValueForOverride: ((StorageID) async throws -> Stored)? = nil
+        valueForOverride: ((StorageID) async throws -> Stored)? = nil
     ) {
         self.storeOverride = storeOverride
-        self.storedValueForOverride = storedValueForOverride
+        self.valueForOverride = valueForOverride
     }
 
     // MARK: - Types
@@ -35,12 +35,12 @@ public class ComposableStorage<Stored, StorageID: Hashable> {
 
     public var storeOverride: ((Stored, StorageID) async throws -> Void)?
 
-    public var storedValueForOverride: ((StorageID) async throws -> Stored?)?
+    public var valueForOverride: ((StorageID) async throws -> Stored?)?
 
     public var removeValueForOverride: ((StorageID) async throws -> Void)?
 }
 
-extension ComposableStorage: Storage {
+extension ComposableStorage: ValueStorage {
     public typealias Stored = Stored
 
     public typealias StorageID = StorageID
@@ -53,12 +53,12 @@ extension ComposableStorage: Storage {
         try await storeOverride(value, identifier)
     }
 
-    public func storedValueFor(identifier: StorageID) async throws -> Stored? {
-        guard let storedValueForOverride else {
+    public func valueFor(identifier: StorageID) async throws -> Stored? {
+        guard let valueForOverride else {
             throw UnimplementedError()
         }
 
-        return try await storedValueForOverride(identifier)
+        return try await valueForOverride(identifier)
     }
 
     public func removeValueFor(identifier: StorageID) async throws {

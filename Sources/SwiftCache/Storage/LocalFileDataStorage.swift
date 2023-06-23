@@ -50,12 +50,12 @@ public struct LocalFileDataStorage {
 
 // MARK: - ReadOnlyStorage Adoption
 
-extension LocalFileDataStorage: StorageSource {
+extension LocalFileDataStorage: ValueSource {
     public typealias Stored = Data
 
     public typealias StorageID = String
 
-    public func storedValueFor(identifier: String) async throws -> Data? {
+    public func valueFor(identifier: String) async throws -> Data? {
         // Wrapped in a task for asynchronous behavior.
         try await Task {
             do {
@@ -78,7 +78,7 @@ extension LocalFileDataStorage: StorageSource {
 
 // MARK: - Storage Adoption
 
-extension LocalFileDataStorage: Storage {
+extension LocalFileDataStorage: ValueStorage {
     public func store(value: Data, identifier: String) async throws {
         // Wrapped in a task for asynchronous behavior.
         try await Task {
