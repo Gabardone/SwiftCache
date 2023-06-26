@@ -128,7 +128,7 @@ final class CacheChainTests: XCTestCase {
 
     private func expectNoInMemory(imageCache: MockImageCache) -> XCTestExpectation {
         let inMemoryReadExpectation = expectation(description: "No in memory image found")
-        imageCache.inMemoryStorage.storedValueForOverride = { url in
+        imageCache.inMemoryStorage.valueForOverride = { url in
             XCTAssertEqual(url, Self.dummyURL)
             inMemoryReadExpectation.fulfill()
             return nil
@@ -151,7 +151,7 @@ final class CacheChainTests: XCTestCase {
 
     private func expectLocalRead(imageCache: MockImageCache, returning: Data? = nil) -> XCTestExpectation {
         let localReadExpectation = expectation(description: "Local data read")
-        imageCache.localStorage.storedValueForOverride = { fileName in
+        imageCache.localStorage.valueForOverride = { fileName in
             localReadExpectation.fulfill()
             XCTAssertEqual(fileName, Self.dummyURL.lastPathComponent)
             return returning
@@ -175,7 +175,7 @@ final class CacheChainTests: XCTestCase {
         existing: XCTestExpectation? = nil
     ) -> XCTestExpectation {
         let networkExpectation = existing ?? expectation(description: "Checking the network")
-        imageCache.networkStorage.storedValueForOverride = { url in
+        imageCache.networkStorage.valueForOverride = { url in
             networkExpectation.fulfill()
             XCTAssertEqual(url, Self.dummyURL)
             return returning

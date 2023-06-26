@@ -36,17 +36,17 @@ public actor WeakObjectStorage<Object: AnyObject, StorageID: Hashable> {
     private let weakObjects = NSMapTable<KeyWrapper, Object>.strongToWeakObjects()
 }
 
-extension WeakObjectStorage: StorageSource {
+extension WeakObjectStorage: ValueSource {
     public typealias Stored = Object
 
     public typealias StorageID = StorageID
 
-    public func storedValueFor(identifier: StorageID) -> Object? {
+    public func valueFor(identifier: StorageID) -> Object? {
         weakObjects.object(forKey: .init(wrapping: identifier))
     }
 }
 
-extension WeakObjectStorage: Storage {
+extension WeakObjectStorage: ValueStorage {
     public func store(value: Object, identifier: StorageID) {
         weakObjects.setObject(value, forKey: .init(wrapping: identifier))
     }

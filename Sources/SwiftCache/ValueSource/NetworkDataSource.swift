@@ -1,5 +1,5 @@
 //
-//  NetworkReadOnlyDataStorage.swift
+//  NetworkDataSource.swift
 //
 //
 //  Created by Óscar Morales Vivó on 4/23/23.
@@ -20,16 +20,13 @@ import os
 
  URLs are meant to be web URLs, the storage logic doesn't know how to deal with other request responses.
  */
-public struct NetworkReadOnlyDataStorage {
+public struct NetworkDataSource {
     /**
-     Initializer with a `URLSession`
+     Initializer with dependencies.
 
-     Since a `NetworkReadOnlyDataStorage` is meant to backstop a cache chain, if no url session is provided it will
-     default to an ephemeral one that does no caching on the assumption that the rest of the cache chain will deal with
-     the kinds of caching that `URLSession` would do by default. But if a different behavior is desired a different,
-     either shared or unique `URLSession` can be passed in.
-     - Parameter urlSession: The URL Session that is used to retrieve data. If `nil` is passed in a shared non-caching
-     ephemeral session will be used
+     To make the data source testable we introduce the actual network access as a `NetworkDependency`. By default it
+     will get the system `URLSession` based one.
+     - Parameter dependencies: The global dependencies where we'll extract a `NetworkDependency` from.
      */
     public init(dependencies: GlobalDependencies = .default) {
         self.dependencies = dependencies
@@ -56,16 +53,16 @@ public struct NetworkReadOnlyDataStorage {
 
 // MARK: - ReadOnlyStorage Adoption
 
-extension NetworkReadOnlyDataStorage: StorageSource {
+extension NetworkDataSource: ValueSource {
     public typealias Stored = Data
 
     public typealias StorageID = URL
 
-    public func storedValueFor(identifier: URL) async throws -> Data? {
+    public func valueFor(identifier: URL) async throws -> Data? {
         guard identifier.scheme == "http" || identifier.scheme == "https" else {
             throw NetworkStorageError.unsupportedURLScheme(identifier.scheme)
         }
 
-        return try await dependencies.network.dataTask(url: identifier).value
+        return try await dependencies.network.dataFor(url: identifier)
     }
 }

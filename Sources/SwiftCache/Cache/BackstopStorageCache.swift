@@ -24,7 +24,7 @@ public actor BackstopStorageCache<Cached, CacheID: Hashable, Stored, StorageID: 
      - Parameter fromStorageConverter: A block that converts storage values into cache values.
      */
     public init(
-        storage: some StorageSource<Stored, StorageID>,
+        storage: some ValueSource<Stored, StorageID>,
         idConverter: @escaping IDConverter,
         fromStorageConverter: @escaping FromStorageConverter
     ) {
@@ -48,7 +48,7 @@ public actor BackstopStorageCache<Cached, CacheID: Hashable, Stored, StorageID: 
 
     // MARK: - Stored Properties
 
-    private let storage: any StorageSource<Stored, StorageID>
+    private let storage: any ValueSource<Stored, StorageID>
 
     private let idConverter: IDConverter
 
@@ -75,7 +75,7 @@ extension BackstopStorageCache: Cache {
                     taskManager.removeValue(forKey: identifier)
                 }
 
-                if let stored = try await storage.storedValueFor(identifier: idConverter(identifier)) {
+                if let stored = try await storage.valueFor(identifier: idConverter(identifier)) {
                     return try await fromStorageConverter(stored)
                 } else {
                     return nil
@@ -88,7 +88,7 @@ extension BackstopStorageCache: Cache {
     }
 
     public func invalidateCachedValueFor(identifier _: CacheID) async throws {
-        // This method intentionally left blank. The Storage doesn't allow for deletion.
+        // This method intentionally left blank. The ValueStorage doesn't allow for deletion.
     }
 }
 
@@ -96,7 +96,7 @@ extension BackstopStorageCache: Cache {
 
 public extension BackstopStorageCache where CacheID == StorageID {
     init(
-        storage: some StorageSource<Stored, StorageID>,
+        storage: some ValueSource<Stored, StorageID>,
         fromStorageConverter: @escaping FromStorageConverter
     ) {
         self.init(
@@ -108,7 +108,7 @@ public extension BackstopStorageCache where CacheID == StorageID {
 }
 
 public extension BackstopStorageCache where Cached == Stored {
-    init(storage: some StorageSource<Stored, StorageID>, idConverter: @escaping IDConverter) {
+    init(storage: some ValueSource<Stored, StorageID>, idConverter: @escaping IDConverter) {
         self.init(
             storage: storage,
             idConverter: idConverter,
@@ -118,7 +118,7 @@ public extension BackstopStorageCache where Cached == Stored {
 }
 
 public extension BackstopStorageCache where CacheID == StorageID, Cached == Stored {
-    init(storage: some StorageSource<Stored, StorageID>) {
+    init(storage: some ValueSource<Stored, StorageID>) {
         self.init(
             storage: storage,
             idConverter: { $0 },

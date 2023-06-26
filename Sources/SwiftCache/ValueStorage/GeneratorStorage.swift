@@ -38,12 +38,12 @@ public struct GeneratorStorage<Stored, StorageID: Hashable> {
 
 // MARK: - ReadOnlyStorage Adoption
 
-extension GeneratorStorage: StorageSource {
+extension GeneratorStorage: ValueSource {
     public typealias Stored = Stored
 
     public typealias StorageID = StorageID
 
-    public func storedValueFor(identifier: StorageID) async throws -> Stored? {
+    public func valueFor(identifier: StorageID) async throws -> Stored? {
         try await generator(identifier)
     }
 }

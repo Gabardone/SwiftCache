@@ -32,7 +32,7 @@ public actor TemporaryStorageCache<Cached, CacheID: Hashable, Next: Cache, Store
      */
     public init(
         next: Next?,
-        storage: some Storage<Stored, StorageID>,
+        storage: some ValueStorage<Stored, StorageID>,
         nextConverter: @escaping NextConverter,
         idConverter: @escaping IDConverter,
         fromStorageConverter: @escaping FromStorageConverter,
@@ -75,7 +75,7 @@ public actor TemporaryStorageCache<Cached, CacheID: Hashable, Next: Cache, Store
 
     private let nextConverter: NextConverter
 
-    private let storage: any Storage<Stored, StorageID>
+    private let storage: any ValueStorage<Stored, StorageID>
 
     private let idConverter: IDConverter
 
@@ -104,7 +104,7 @@ extension TemporaryStorageCache: Cache {
                     taskManager.removeValue(forKey: identifier)
                 }
 
-                if let stored = try await storage.storedValueFor(identifier: idConverter(identifier)) {
+                if let stored = try await storage.valueFor(identifier: idConverter(identifier)) {
                     return try await fromStorageConverter(stored)
                 } else if let next, let nextValue = try await next.cachedValueWith(identifier: identifier) {
                     let value = try await processFromNext(nextValue: nextValue)
@@ -152,7 +152,7 @@ extension TemporaryStorageCache: ChainableCache {
 public extension TemporaryStorageCache where Next.Cached == Cached {
     init(
         next: Next?,
-        storage: some Storage<Stored, StorageID>,
+        storage: some ValueStorage<Stored, StorageID>,
         idConverter: @escaping IDConverter,
         fromStorageConverter: @escaping FromStorageConverter,
         toStorageConverter: @escaping ToStorageConverter
@@ -171,7 +171,7 @@ public extension TemporaryStorageCache where Next.Cached == Cached {
 public extension TemporaryStorageCache where CacheID == StorageID {
     init(
         next: Next?,
-        storage: some Storage<Stored, StorageID>,
+        storage: some ValueStorage<Stored, StorageID>,
         nextConverter: @escaping NextConverter,
         fromStorageConverter: @escaping FromStorageConverter,
         toStorageConverter: @escaping ToStorageConverter
@@ -190,7 +190,7 @@ public extension TemporaryStorageCache where CacheID == StorageID {
 public extension TemporaryStorageCache where Cached == Stored {
     init(
         next: Next?,
-        storage: some Storage<Stored, StorageID>,
+        storage: some ValueStorage<Stored, StorageID>,
         nextConverter: @escaping NextConverter,
         idConverter: @escaping IDConverter
     ) {
@@ -206,7 +206,7 @@ public extension TemporaryStorageCache where Cached == Stored {
 }
 
 public extension TemporaryStorageCache where CacheID == StorageID, Cached == Stored {
-    init(next: Next?, storage: some Storage<Stored, StorageID>, nextConverter: @escaping NextConverter) {
+    init(next: Next?, storage: some ValueStorage<Stored, StorageID>, nextConverter: @escaping NextConverter) {
         self.init(
             next: next,
             storage: storage,
@@ -219,7 +219,7 @@ public extension TemporaryStorageCache where CacheID == StorageID, Cached == Sto
 }
 
 public extension TemporaryStorageCache where Next.Cached == Cached, Cached == Stored {
-    init(next: Next?, storage: some Storage<Stored, StorageID>, idConverter: @escaping IDConverter) {
+    init(next: Next?, storage: some ValueStorage<Stored, StorageID>, idConverter: @escaping IDConverter) {
         self.init(
             next: next,
             storage: storage,
@@ -234,7 +234,7 @@ public extension TemporaryStorageCache where Next.Cached == Cached, Cached == St
 public extension TemporaryStorageCache where Next.Cached == Cached, CacheID == StorageID {
     init(
         next: Next?,
-        storage: some Storage<Stored, StorageID>,
+        storage: some ValueStorage<Stored, StorageID>,
         nextConverter: @escaping NextConverter,
         fromStorageConverter: @escaping FromStorageConverter,
         toStorageConverter: @escaping ToStorageConverter
@@ -251,7 +251,7 @@ public extension TemporaryStorageCache where Next.Cached == Cached, CacheID == S
 }
 
 public extension TemporaryStorageCache where Next.Cached == Cached, CacheID == StorageID, Cached == Stored {
-    init(next: Next?, storage: some Storage<Stored, StorageID>) {
+    init(next: Next?, storage: some ValueStorage<Stored, StorageID>) {
         self.init(
             next: next,
             storage: storage,

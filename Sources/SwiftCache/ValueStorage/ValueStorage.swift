@@ -1,5 +1,5 @@
 //
-//  Storage.swift
+//  ValueStorage.swift
 //
 //
 //  Created by Óscar Morales Vivó on 4/23/23.
@@ -10,14 +10,14 @@ import Foundation
 /**
  A protocol for asynchronous, failable storage of data by identifier.
 
- This is the mutable extension of `ReadOnlyStorage` to be used for `ChainableCache` implementations to store the
- results of its `next` cache fetch.
+ This is the mutable extension of `ValueSource` which is used by `ChainableCache` implementations to store the results
+ of its `next` cache fetch, but it can also be used as a simple way to abstract away asynchronous storage elsewhere.
 
  Caches that either store or manage raw data should store a façaded existential `any Storage` with the right types to
  perform those operations as to allow for testability and overall abstract away hard dependencies on storage APIs (DBs,
  network, file system…).
  */
-public protocol Storage<Stored, StorageID>: StorageSource {
+public protocol ValueStorage<Stored, StorageID>: ValueSource {
     /**
      Stores the given data locally for the given `identifier`
 
