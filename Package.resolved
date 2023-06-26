@@ -1,6 +1,15 @@
 {
   "pins" : [
     {
+      "identity" : "filesystemdependency",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/Gabardone/FileSystemDependency.git",
+      "state" : {
+        "revision" : "c29100d521499c57eea3cc4742a32550cbacebbb",
+        "version" : "0.0.3"
+      }
+    },
+    {
       "identity" : "globaldependencies",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Gabardone/GlobalDependencies",

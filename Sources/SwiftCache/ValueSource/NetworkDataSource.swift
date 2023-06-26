@@ -22,14 +22,11 @@ import os
  */
 public struct NetworkDataSource {
     /**
-     Initializer with a `URLSession`
+     Initializer with dependencies.
 
-     Since a `NetworkReadOnlyDataStorage` is meant to backstop a cache chain, if no url session is provided it will
-     default to an ephemeral one that does no caching on the assumption that the rest of the cache chain will deal with
-     the kinds of caching that `URLSession` would do by default. But if a different behavior is desired a different,
-     either shared or unique `URLSession` can be passed in.
-     - Parameter urlSession: The URL Session that is used to retrieve data. If `nil` is passed in a shared non-caching
-     ephemeral session will be used
+     To make the data source testable we introduce the actual network access as a `NetworkDependency`. By default it
+     will get the system `URLSession` based one.
+     - Parameter dependencies: The global dependencies where we'll extract a `NetworkDependency` from.
      */
     public init(dependencies: GlobalDependencies = .default) {
         self.dependencies = dependencies
