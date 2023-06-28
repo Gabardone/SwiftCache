@@ -20,7 +20,7 @@ let package = Package(
         )
     ],
     dependencies: [
-        .package(url: "https://github.com/Gabardone/FileSystemDependency.git", from: "0.0.3"),
+        .package(url: "https://github.com/Gabardone/FileSystemDependency.git", from: "0.0.4"),
         .package(url: "https://github.com/Gabardone/NetworkDependency.git", from: "2.0.0")
     ],
     targets: [

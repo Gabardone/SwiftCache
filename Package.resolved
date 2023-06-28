@@ -5,8 +5,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Gabardone/FileSystemDependency.git",
       "state" : {
-        "revision" : "c29100d521499c57eea3cc4742a32550cbacebbb",
-        "version" : "0.0.3"
+        "revision" : "d3d09407f555ce497d8fbbbd43defb5e0491d48f",
+        "version" : "0.0.4"
       }
     },
     {
