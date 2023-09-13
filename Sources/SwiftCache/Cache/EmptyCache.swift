@@ -12,7 +12,9 @@ import Foundation
 
  This may not seem like much, but it makes for a great stub to use in testing and preview work.
  */
-public actor EmptyCache<Cached, CacheID: Hashable> {}
+public actor EmptyCache<Cached, CacheID: Hashable> {
+    public init() {}
+}
 
 extension EmptyCache: Cache {
     public func cachedValueWith(identifier _: CacheID) async throws -> Cached? {
