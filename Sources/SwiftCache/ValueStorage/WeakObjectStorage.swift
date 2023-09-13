@@ -51,7 +51,7 @@ extension WeakObjectStorage: ValueStorage {
         weakObjects.setObject(value, forKey: .init(wrapping: identifier))
     }
 
-    public func removeValueFor(identifier: StorageID) async throws {
+    public func removeValueFor(identifier: StorageID) {
         weakObjects.removeObject(forKey: .init(wrapping: identifier))
     }
 }
