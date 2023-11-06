@@ -5,8 +5,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Gabardone/FileSystemDependency.git",
       "state" : {
-        "revision" : "d3d09407f555ce497d8fbbbd43defb5e0491d48f",
-        "version" : "0.0.4"
+        "branch" : "UseDependencies2",
+        "revision" : "b882b3a322f3c8c8b5a79f93be6e4d90baf110b3"
       }
     },
     {
@@ -14,8 +14,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Gabardone/GlobalDependencies",
       "state" : {
-        "revision" : "dca8fb31eb9d6efc42b454aa4a5ea812d7d74c23",
-        "version" : "2.0.0"
+        "branch" : "MacroSupport",
+        "revision" : "5c459470b5df29f5ece204c828eeb7507b366e47"
       }
     },
     {
@@ -23,8 +23,17 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Gabardone/NetworkDependency.git",
       "state" : {
-        "revision" : "3d9b7c28594f118b0b61d07842e161c06b8ba906",
-        "version" : "2.0.0"
+        "branch" : "UseDependencies2",
+        "revision" : "24e026327da95adc86a6c11f0472a1c3ad0d6bf7"
+      }
+    },
+    {
+      "identity" : "swift-syntax",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-syntax.git",
+      "state" : {
+        "revision" : "6ad4ea24b01559dde0773e3d091f1b9e36175036",
+        "version" : "509.0.2"
       }
     }
   ],

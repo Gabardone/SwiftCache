@@ -8,6 +8,11 @@
 import SwiftCache
 import XCTest
 
+#if os(macOS)
+// Shuts up the `Sendable` warnings in the tests.
+extension NSImage: @unchecked Sendable {}
+#endif
+
 extension CacheChainTests {
     #if os(macOS)
     typealias XXImage = NSImage
