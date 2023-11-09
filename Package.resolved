@@ -6,7 +6,7 @@
       "location" : "https://github.com/Gabardone/FileSystemDependency.git",
       "state" : {
         "branch" : "UseDependencies2",
-        "revision" : "b882b3a322f3c8c8b5a79f93be6e4d90baf110b3"
+        "revision" : "4217b572c5a6bbde49770a702e4fe9fa884e89b7"
       }
     },
     {
@@ -15,7 +15,7 @@
       "location" : "https://github.com/Gabardone/GlobalDependencies",
       "state" : {
         "branch" : "MacroSupport",
-        "revision" : "5c459470b5df29f5ece204c828eeb7507b366e47"
+        "revision" : "a18d6e6198fce826e2c0f0ad4998c8f0b07b3945"
       }
     },
     {
@@ -24,7 +24,7 @@
       "location" : "https://github.com/Gabardone/NetworkDependency.git",
       "state" : {
         "branch" : "UseDependencies2",
-        "revision" : "24e026327da95adc86a6c11f0472a1c3ad0d6bf7"
+        "revision" : "cf6cbc99f440728b4890e92f0df424ce7d382d01"
       }
     },
     {
