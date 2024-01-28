@@ -5,8 +5,9 @@
 //  Created by Óscar Morales Vivó on 4/23/23.
 //
 
-import FileSystemDependency
+@_exported import FileSystemDependency
 import Foundation
+@_exported import GlobalDependencies
 
 /**
  A simple implementation of local file system storage for caching.

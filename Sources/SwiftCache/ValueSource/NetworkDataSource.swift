@@ -6,6 +6,7 @@
 //
 
 import Foundation
+@_exported import GlobalDependencies
 @_exported import NetworkDependency
 import os
 
