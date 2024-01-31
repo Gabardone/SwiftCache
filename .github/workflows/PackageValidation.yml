@@ -12,7 +12,7 @@ jobs:
     runs-on: ${{ vars.RUNNER }}
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Select Xcode Version
         run: sudo xcode-select --switch ${{ vars.TOOLPATH }}
       - name: Verify Format
@@ -22,7 +22,7 @@ jobs:
     runs-on: ${{ vars.RUNNER }}
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Select Xcode Version
         run: sudo xcode-select --switch ${{ vars.TOOLPATH }}
       - name: Run Linter
@@ -36,8 +36,8 @@ jobs:
     runs-on: ${{ vars.RUNNER }}
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Select Xcode Version
         run: sudo xcode-select --switch ${{ vars.TOOLPATH }}
       - name: Build and Test
-        run: xcodebuild test -scheme ${{ github.event.repository.name }} -destination '${{ matrix.platforms.destination }}'
+        run: xcodebuild test -scheme ${{ github.event.repository.name }} -destination '${{ matrix.platforms.destination }}' -skipMacroValidation
