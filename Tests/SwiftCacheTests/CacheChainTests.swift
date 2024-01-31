@@ -8,72 +8,6 @@
 import SwiftCache
 import XCTest
 
-extension CacheChainTests {
-    #if os(macOS)
-    typealias XXImage = NSImage
-
-    private static let sampleImage: NSImage = {
-        let imageSize = CGSize(width: 256.0, height: 256.0)
-        return NSImage(size: imageSize, flipped: false) { rect in
-            NSColor.yellow.setFill()
-            NSBezierPath.fill(rect)
-            NSColor.blue.setFill()
-            NSBezierPath(ovalIn: .init(
-                x: imageSize.width / 8.0,
-                y: imageSize.height / 8.0,
-                width: imageSize.width / 4.0,
-                height: imageSize.height / 4.0
-            )
-            ).fill()
-            NSBezierPath(ovalIn: .init(
-                x: (imageSize.width * 5.0) / 8.0,
-                y: (imageSize.height * 5.0) / 8.0,
-                width: imageSize.width / 4.0,
-                height: imageSize.height / 4.0
-            )
-            ).fill()
-
-            return true
-        }
-    }()
-
-    private static let sampleImageData: Data = sampleImage.tiffRepresentation!
-    #else
-    typealias XXImage = UIImage
-
-    private static let sampleImage: UIImage = {
-        let imageSize = CGSize(width: 256.0, height: 256.0)
-        UIGraphicsBeginImageContext(imageSize)
-        defer {
-            UIGraphicsEndImageContext()
-        }
-
-        let context = UIGraphicsGetCurrentContext()!
-        UIColor.yellow.setFill()
-        context.fill(.init(origin: .zero, size: imageSize))
-        UIColor.blue.setFill()
-        UIBezierPath(ovalIn: .init(
-            x: imageSize.width / 8.0,
-            y: imageSize.height / 8.0,
-            width: imageSize.width / 4.0,
-            height: imageSize.height / 4.0
-        )
-        ).fill()
-        UIBezierPath(ovalIn: .init(
-            x: (imageSize.width * 5.0) / 8.0,
-            y: (imageSize.height * 5.0) / 8.0,
-            width: imageSize.width / 4.0,
-            height: imageSize.height / 4.0
-        )
-        ).fill()
-
-        return UIGraphicsGetImageFromCurrentImageContext()!
-    }()
-
-    private static let sampleImageData: Data = sampleImage.pngData()!
-    #endif
-}
-
 final class CacheChainTests: XCTestCase {
     private static let badImageData = Data(count: 16)
 
@@ -143,8 +77,8 @@ final class CacheChainTests: XCTestCase {
 
             // Check that it's the same image as usual.
             XCTAssertEqual(url, Self.dummyURL)
-            XCTAssertEqual(image.size.width, Self.sampleImage.size.width)
-            XCTAssertEqual(image.size.height, Self.sampleImage.size.height)
+            XCTAssertEqual(image.size.width, XXImage.sampleImage.size.width)
+            XCTAssertEqual(image.size.height, XXImage.sampleImage.size.height)
         }
         return inMemoryWriteExpectation
     }
@@ -164,7 +98,7 @@ final class CacheChainTests: XCTestCase {
         imageCache.localStorage.storeOverride = { data, fileName in
             localWriteExpectation.fulfill()
             XCTAssertEqual(fileName, Self.dummyURL.lastPathComponent)
-            XCTAssertEqual(data, Self.sampleImageData)
+            XCTAssertEqual(data, XXImage.sampleImageData)
         }
         return localWriteExpectation
     }
@@ -202,7 +136,7 @@ final class CacheChainTests: XCTestCase {
     // If the data is found locally, we return it and don't do anything else weird.
     func testLocallyStoredImageDataHappyPath() async throws {
         let imageCache = Self.buildImageCache()
-        let localReadExpectation = expectLocalRead(imageCache: imageCache, returning: Self.sampleImageData)
+        let localReadExpectation = expectLocalRead(imageCache: imageCache, returning: XXImage.sampleImageData)
 
         let inMemoryReadExpectation = expectNoInMemory(imageCache: imageCache)
 
@@ -214,15 +148,14 @@ final class CacheChainTests: XCTestCase {
 
         // Looping image -> data -> image -> data doesn't usually result in equal data or equal images as some config
         // data gets lost, but at least we can check pixel size.
-        XCTAssertEqual(image?.size.width, Self.sampleImage.size.width)
-        XCTAssertEqual(image?.size.height, Self.sampleImage.size.height)
+        XCTAssertEqual(image?.size, XXImage.sampleImage.size)
     }
 
     // If the data is not local, we get remote and store.
     func testRemotelyStoredImageDataHappyPath() async throws {
         let imageCache = Self.buildImageCache()
 
-        let networkReadExpectation = expectNetworkRead(imageCache: imageCache, returning: Self.sampleImageData)
+        let networkReadExpectation = expectNetworkRead(imageCache: imageCache, returning: XXImage.sampleImageData)
 
         let localReadExpectation = expectLocalRead(imageCache: imageCache)
 
@@ -244,8 +177,7 @@ final class CacheChainTests: XCTestCase {
 
         // Looping image -> data -> image -> data doesn't usually result in equal data or equal images as some config
         // data gets lost, but at least we can check pixel size.
-        XCTAssertEqual(image?.size.width, Self.sampleImage.size.width)
-        XCTAssertEqual(image?.size.height, Self.sampleImage.size.height)
+        XCTAssertEqual(image?.size, XXImage.sampleImage.size)
     }
 
     // If the local data is bad we recover by grabbing remote again.
@@ -306,7 +238,7 @@ final class CacheChainTests: XCTestCase {
             XCTAssertTrue(error is ImageConversionError)
         }
 
-        _ = expectNetworkRead(imageCache: imageCache, returning: Self.sampleImageData, existing: networkExpectation)
+        _ = expectNetworkRead(imageCache: imageCache, returning: XXImage.sampleImageData, existing: networkExpectation)
 
         let localWriteExpectation = expectLocalWrite(imageCache: imageCache)
 
@@ -327,8 +259,7 @@ final class CacheChainTests: XCTestCase {
 
         // Looping image -> data -> image -> data doesn't usually result in equal data or equal images as some config
         // data gets lost, but at least we can check pixel size.
-        XCTAssertEqual(image?.size.width, Self.sampleImage.size.width)
-        XCTAssertEqual(image?.size.height, Self.sampleImage.size.height)
+        XCTAssertEqual(image?.size, XXImage.sampleImage.size)
     }
 
     // Tests that retrying works if local data is corrupted and we inivalidate it.
@@ -368,7 +299,7 @@ final class CacheChainTests: XCTestCase {
 
         // XXXX
 
-        let networkExpectation = expectNetworkRead(imageCache: imageCache, returning: Self.sampleImageData)
+        let networkExpectation = expectNetworkRead(imageCache: imageCache, returning: XXImage.sampleImageData)
 
         let localGoodReadExpectation = expectLocalRead(imageCache: imageCache)
 
@@ -391,7 +322,6 @@ final class CacheChainTests: XCTestCase {
 
         // Looping image -> data -> image -> data doesn't usually result in equal data or equal images as some config
         // data gets lost, but at least we can check pixel size.
-        XCTAssertEqual(image?.size.width, Self.sampleImage.size.width)
-        XCTAssertEqual(image?.size.height, Self.sampleImage.size.height)
+        XCTAssertEqual(image?.size, XXImage.sampleImage.size)
     }
 }
