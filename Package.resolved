@@ -5,8 +5,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Gabardone/FileSystemDependency.git",
       "state" : {
-        "revision" : "47f6e3b71bc698457538e9e513dcd9a37408ec96",
-        "version" : "1.0.0"
+        "revision" : "42eff2f631a4a91ce23850421fb623d0ae5f5c58",
+        "version" : "1.0.1"
       }
     },
     {
@@ -14,8 +14,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Gabardone/GlobalDependencies",
       "state" : {
-        "revision" : "088429933d5fc52a42f6f7bd820ae7e6c3d79981",
-        "version" : "2.0.0"
+        "revision" : "f2ac651059e19424046e98951f2572e7d5350d08",
+        "version" : "2.0.1"
       }
     },
     {
@@ -23,8 +23,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Gabardone/NetworkDependency.git",
       "state" : {
-        "revision" : "63188a6884d5247c1ad07bdc9d49463745b16581",
-        "version" : "4.0.0"
+        "revision" : "13e6f160d4e2e6b8928d1e4d6fff3e1967c0e2da",
+        "version" : "4.0.1"
       }
     },
     {
