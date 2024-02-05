@@ -1,5 +1,5 @@
 //
-//  TemporaryStorageCache+LocalFileDataStorage.swift
+//  ChainableCache+LocalFileDataStorage.swift
 //
 //
 //  Created by Óscar Morales Vivó on 6/23/23.
@@ -7,7 +7,7 @@
 
 import Foundation
 
-public extension TemporaryStorageCache where StorageID == URL, Stored == Data {
+public extension ChainableCache where StorageID == URL, Stored == Data {
     /**
      Initializer for a cache folder local file system temporary storage cache.
 
@@ -50,7 +50,7 @@ public extension TemporaryStorageCache where StorageID == URL, Stored == Data {
 
 // MARK: - Helper Initializers
 
-public extension TemporaryStorageCache where Next.Cached == Cached, StorageID == URL, Stored == Data {
+public extension ChainableCache where Next.Cached == Cached, StorageID == URL, Stored == Data {
     init(
         next: Next?,
         storage: some ValueStorage<Stored, StorageID>,
@@ -69,7 +69,7 @@ public extension TemporaryStorageCache where Next.Cached == Cached, StorageID ==
     }
 }
 
-public extension TemporaryStorageCache where Cached == Stored, StorageID == URL, Stored == Data {
+public extension ChainableCache where Cached == Stored, StorageID == URL, Stored == Data {
     init(
         next: Next?,
         storage: some ValueStorage<Stored, StorageID>,
@@ -87,7 +87,7 @@ public extension TemporaryStorageCache where Cached == Stored, StorageID == URL,
     }
 }
 
-public extension TemporaryStorageCache where Next.Cached == Cached, Cached == Stored, StorageID == URL, Stored == Data {
+public extension ChainableCache where Next.Cached == Cached, Cached == Stored, StorageID == URL, Stored == Data {
     init(next: Next?, storage: some ValueStorage<Stored, StorageID>, rootDirectory: URL) {
         self.init(
             next: next,

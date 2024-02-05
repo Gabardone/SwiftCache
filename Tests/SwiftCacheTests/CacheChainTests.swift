@@ -39,12 +39,12 @@ final class CacheChainTests: XCTestCase {
         let networkCache = BackstopCache(storage: networkStorage)
 
         let localStorage = MockLocalStorage()
-        let localCache = TemporaryStorageCache(next: networkCache, storage: localStorage, idConverter: { url in
+        let localCache = ChainableCache(next: networkCache, storage: localStorage, idConverter: { url in
             url.lastPathComponent
         })
 
         let inMemoryStorage = MockImageStorage()
-        let inMemoryCache = TemporaryStorageCache(next: localCache, storage: inMemoryStorage) { data in
+        let inMemoryCache = ChainableCache(next: localCache, storage: inMemoryStorage) { data in
             if let image = XXImage(data: data) {
                 return image
             } else {
