@@ -1,5 +1,5 @@
 //
-//  BackstopStorageCache.swift
+//  BackstopCache.swift
 //
 //
 //  Created by Óscar Morales Vivó on 4/23/23.
@@ -13,7 +13,7 @@ import Foundation
  This is meant for the end of a cache chain as a final backstop for finding the requested data. Common examples would
  be network-backed values or from other storage that we are not meant to modify.
  */
-public actor BackstopStorageCache<Cached, CacheID: Hashable, Stored, StorageID: Hashable> {
+public actor BackstopCache<Cached, CacheID: Hashable, Stored, StorageID: Hashable> {
     /**
      Initializes with a storage and a full set of injectable behaviors.
 
@@ -59,7 +59,7 @@ public actor BackstopStorageCache<Cached, CacheID: Hashable, Stored, StorageID: 
 
 // MARK: - Cache Adoption
 
-extension BackstopStorageCache: Cache {
+extension BackstopCache: Cache {
     public typealias Cached = Cached
 
     public typealias CacheID = CacheID
@@ -94,7 +94,7 @@ extension BackstopStorageCache: Cache {
 
 // MARK: - Helper Initializers
 
-public extension BackstopStorageCache where CacheID == StorageID {
+public extension BackstopCache where CacheID == StorageID {
     init(
         storage: some ValueSource<Stored, StorageID>,
         fromStorageConverter: @escaping FromStorageConverter
@@ -107,7 +107,7 @@ public extension BackstopStorageCache where CacheID == StorageID {
     }
 }
 
-public extension BackstopStorageCache where Cached == Stored {
+public extension BackstopCache where Cached == Stored {
     init(storage: some ValueSource<Stored, StorageID>, idConverter: @escaping IDConverter) {
         self.init(
             storage: storage,
@@ -117,7 +117,7 @@ public extension BackstopStorageCache where Cached == Stored {
     }
 }
 
-public extension BackstopStorageCache where CacheID == StorageID, Cached == Stored {
+public extension BackstopCache where CacheID == StorageID, Cached == Stored {
     init(storage: some ValueSource<Stored, StorageID>) {
         self.init(
             storage: storage,

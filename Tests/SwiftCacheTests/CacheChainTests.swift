@@ -36,7 +36,7 @@ final class CacheChainTests: XCTestCase {
      */
     private static func buildImageCache() -> MockImageCache {
         let networkStorage = MockNetworkStorage()
-        let networkCache = BackstopStorageCache(storage: networkStorage)
+        let networkCache = BackstopCache(storage: networkStorage)
 
         let localStorage = MockLocalStorage()
         let localCache = TemporaryStorageCache(next: networkCache, storage: localStorage, idConverter: { url in

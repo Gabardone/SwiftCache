@@ -10,7 +10,7 @@ import Foundation
 /**
  A type of read-only storage that generates values instead of fetching them.
 
- This should be used attached to a `BackstopStorageCache` so its results are stored elsewhere in the cache chain.
+ This should be used attached to a `BackstopCache` so its results are stored elsewhere in the cache chain.
  Otherwise you'll be generating the values all the time which doesn't sound like caching to anyone.
  */
 public struct GeneratorStorage<Stored, StorageID: Hashable> {
