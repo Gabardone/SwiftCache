@@ -55,6 +55,24 @@ public actor BackstopCache<Cached, CacheID: Hashable, Stored, StorageID: Hashabl
     private let fromStorageConverter: FromStorageConverter
 
     private var taskManager = [CacheID: Task<Cached?, Error>]()
+
+    // MARK: - Test Properties
+
+    #if DEBUG
+    /**
+     This block, if set, will be run at the entrypoint of `cachedValueWith(identifier:)`.
+
+     Use it to validate actor reentry and order of operations.
+
+     Purposefully a non-async method as to avoid actor concurrent behavior changes when run, keep in mind that it's run
+     in actor context when set.
+     */
+    var enteredCachedValueWithIdentifier: ((CacheID) async -> Void)?
+
+    func setEnteredCachedValueWithIdentifier(_ block: ((CacheID) async -> Void)?) {
+        enteredCachedValueWithIdentifier = block
+    }
+    #endif
 }
 
 // MARK: - Cache Adoption
@@ -65,6 +83,9 @@ extension BackstopCache: Cache {
     public typealias CacheID = CacheID
 
     public func cachedValueWith(identifier: CacheID) async throws -> Cached? {
+        #if DEBUG
+        await enteredCachedValueWithIdentifier?(identifier)
+        #endif
         if let ongoingTask = taskManager[identifier] {
             // Avoid reentrancy, just wait for the ongoing task that is already doing the stuff.
             return try await ongoingTask.value

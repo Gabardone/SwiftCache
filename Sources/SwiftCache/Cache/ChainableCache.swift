@@ -1,5 +1,5 @@
 //
-//  TemporaryStorageCache.swift
+//  ChainableCache.swift
 //
 //
 //  Created by Óscar Morales Vivó on 4/22/23.
@@ -140,8 +140,8 @@ extension ChainableCache: Cache {
     }
 }
 
-extension ChainableCache {
-    public typealias Next = Next
+public extension ChainableCache {
+    typealias Next = Next
 
     /**
      Translates a cached value returned from `next` into one of the type that `self` manages. May throw if conversion is
@@ -149,7 +149,7 @@ extension ChainableCache {
      - Parameter nextValue: The value returned from `next`.
      - Returns: An equivalent value of the type managed by the caller.
      */
-    public func processFromNext(nextValue: Next.Cached) async throws -> Cached {
+    func processFromNext(nextValue: Next.Cached) async throws -> Cached {
         try await nextConverter(nextValue)
     }
 
@@ -163,7 +163,7 @@ extension ChainableCache {
      - Parameter value: The value to store in the cache.
      - Parameter identifier: The identifier to use to store the value.
      */
-    public func store(value: Cached, identifier: CacheID) async throws {
+    func store(value: Cached, identifier: CacheID) async throws {
         try await storage.store(
             value: toStorageConverter(value),
             identifier: idConverter(identifier)
