@@ -22,6 +22,10 @@ final class BackstopCacheTests: XCTestCase {
     }
 
     // Checks that two requests for the same identifier at the same time will cause a single task to execute.
+    // NOTE: This is about as good a unit test I could design for this behavior, and it still required adding debug-only
+    // logic to `BackstopCache` since Swift concurrency offers next to no guarantees of operation order. Coming up with
+    // a good way to guarantee backstop cache reentrancy without inserting logic in the type would be helpful, the only
+    // thing we really need to verify at that point is that storage only gets called once.
     func testReentrancy() async throws {
         let identifier = "Potato"
 

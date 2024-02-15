@@ -12,6 +12,10 @@ import Foundation
 
  This is meant for the end of a cache chain as a final backstop for finding the requested data. Common examples would
  be network-backed values or from other storage that we are not meant to modify.
+
+ Beyond optimizing away simultaneous calls for the same ID this cache does no optimizations, it is therefore unwise to
+ use directly without other storage layers in between this and the cache client. Normally a `ChainableCache` or several
+ will sit in between with faster and more persistent storage attached.
  */
 public actor BackstopCache<Cached, CacheID: Hashable, Stored, StorageID: Hashable> {
     /**
