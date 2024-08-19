@@ -14,8 +14,8 @@ import os
  Most front and intermediate steps in a cache chain can be implemented using this type. Quick common specializations
  using the provided storage implementations can be built with the respective factory methods.
  */
-public actor TemporaryStorageCache<Cached, CacheID: Hashable, Next: Cache, Stored, StorageID: Hashable>
-    where Next.CacheID == CacheID {
+public actor TemporaryStorageCache<ID: Hashable, Value, Next: Cache, Stored, StorageID: Hashable>
+    where Next.ID == ID {
     /**
      Initializes with a next cache, a storage and a full set of injectable behaviors.
 
@@ -51,23 +51,23 @@ public actor TemporaryStorageCache<Cached, CacheID: Hashable, Next: Cache, Store
     /**
      Type of block used to convert from `next` cached values to our cached values.
      */
-    public typealias NextConverter = (Next.Cached) async throws -> Cached
+    public typealias NextConverter = (Next.Value) async throws -> Value
 
     /**
      Block used to convert cache IDs to storage IDs. Unlike the other injectable behaviors, this is expected to always
      work and do so synchronously.
      */
-    public typealias IDConverter = (CacheID) -> StorageID
+    public typealias IDConverter = (ID) -> StorageID
 
     /**
      Type of block used to convert from stored values to cache values.
      */
-    public typealias FromStorageConverter = (Stored) async throws -> (Cached)
+    public typealias FromStorageConverter = (Stored) async throws -> (Value)
 
     /**
      Type of block used to convert from cached values to stored values.
      */
-    public typealias ToStorageConverter = (Cached) async throws -> (Stored)
+    public typealias ToStorageConverter = (Value) async throws -> (Stored)
 
     // MARK: - Stored Properties
 
@@ -83,63 +83,58 @@ public actor TemporaryStorageCache<Cached, CacheID: Hashable, Next: Cache, Store
 
     private let toStorageConverter: ToStorageConverter
 
-    private var taskManager = [CacheID: Task<Cached?, Error>]()
+    private var taskManager = [ID: Task<Value, Error>]()
 }
 
 // MARK: - Cache Adoption
 
 extension TemporaryStorageCache: Cache {
-    public typealias Cached = Cached
+    public typealias Value = Value
 
-    public typealias CacheID = CacheID
+    public typealias ID = ID
 
-    public func cachedValueWith(identifier: CacheID) async throws -> Cached? {
-        if let ongoingTask = taskManager[identifier] {
+    public func cachedValueWith(id: ID) async throws -> Value {
+        if let ongoingTask = taskManager[id] {
             // Avoid reentrancy, just wait for the ongoing task that is already doing the stuff.
             return try await ongoingTask.value
         } else {
-            let newTask = Task<Cached?, Error> {
+            let newTask = Task<Value, Error> { [next] in
                 defer {
                     // No matter what happens at the end we want to clear out the task in the manager.
-                    taskManager.removeValue(forKey: identifier)
+                    taskManager.removeValue(forKey: id)
                 }
 
-                if let stored = try await storage.valueFor(identifier: idConverter(identifier)) {
+                if let stored = try await storage.valueFor(identifier: idConverter(id)) {
                     return try await fromStorageConverter(stored)
-                } else if let next, let nextValue = try await next.cachedValueWith(identifier: identifier) {
+                } else if let next {
+                    let nextValue = try await next.cachedValueWith(id: id)
                     let value = try await processFromNext(nextValue: nextValue)
                     do {
-                        try await store(value: value, identifier: identifier)
+                        try await store(value: value, identifier: id)
                     } catch {
                         // This is bad but we can still return the value.
-                        Logger.cache.error("TemporaryStorageCache unable to store value with identifier: \(String(describing: identifier)), error: \(error.localizedDescription)")
+                        Logger.cache.error("TemporaryStorageCache unable to store value with identifier: \(String(describing: id)), error: \(error.localizedDescription)")
                     }
                     return value
                 } else {
-                    return nil
+                    throw NSError(domain: NSCocoaErrorDomain, code: 17)
                 }
             }
 
-            taskManager[identifier] = newTask
+            taskManager[id] = newTask
             return try await newTask.value
         }
-    }
-
-    public func invalidateCachedValueFor(identifier: CacheID) async throws {
-        try await storage.removeValueFor(identifier: idConverter(identifier))
-
-        try await next?.invalidateCachedValueFor(identifier: identifier)
     }
 }
 
 extension TemporaryStorageCache: ChainableCache {
     public typealias Next = Next
 
-    public func processFromNext(nextValue: Next.Cached) async throws -> Cached {
+    public func processFromNext(nextValue: Next.Value) async throws -> Value {
         try await nextConverter(nextValue)
     }
 
-    public func store(value: Cached, identifier: CacheID) async throws {
+    public func store(value: Value, identifier: ID) async throws {
         try await storage.store(
             value: toStorageConverter(value),
             identifier: idConverter(identifier)
@@ -149,7 +144,7 @@ extension TemporaryStorageCache: ChainableCache {
 
 // MARK: - Helper Initializers
 
-public extension TemporaryStorageCache where Next.Cached == Cached {
+public extension TemporaryStorageCache where Next.Value == Value {
     init(
         next: Next?,
         storage: some ValueStorage<Stored, StorageID>,
@@ -168,7 +163,7 @@ public extension TemporaryStorageCache where Next.Cached == Cached {
     }
 }
 
-public extension TemporaryStorageCache where CacheID == StorageID {
+public extension TemporaryStorageCache where ID == StorageID {
     init(
         next: Next?,
         storage: some ValueStorage<Stored, StorageID>,
@@ -187,7 +182,7 @@ public extension TemporaryStorageCache where CacheID == StorageID {
     }
 }
 
-public extension TemporaryStorageCache where Cached == Stored {
+public extension TemporaryStorageCache where Value == Stored {
     init(
         next: Next?,
         storage: some ValueStorage<Stored, StorageID>,
@@ -205,7 +200,7 @@ public extension TemporaryStorageCache where Cached == Stored {
     }
 }
 
-public extension TemporaryStorageCache where CacheID == StorageID, Cached == Stored {
+public extension TemporaryStorageCache where ID == StorageID, Value == Stored {
     init(next: Next?, storage: some ValueStorage<Stored, StorageID>, nextConverter: @escaping NextConverter) {
         self.init(
             next: next,
@@ -218,7 +213,7 @@ public extension TemporaryStorageCache where CacheID == StorageID, Cached == Sto
     }
 }
 
-public extension TemporaryStorageCache where Next.Cached == Cached, Cached == Stored {
+public extension TemporaryStorageCache where Next.Value == Value, Value == Stored {
     init(next: Next?, storage: some ValueStorage<Stored, StorageID>, idConverter: @escaping IDConverter) {
         self.init(
             next: next,
@@ -231,7 +226,7 @@ public extension TemporaryStorageCache where Next.Cached == Cached, Cached == St
     }
 }
 
-public extension TemporaryStorageCache where Next.Cached == Cached, CacheID == StorageID {
+public extension TemporaryStorageCache where Next.Value == Value, ID == StorageID {
     init(
         next: Next?,
         storage: some ValueStorage<Stored, StorageID>,
@@ -250,7 +245,7 @@ public extension TemporaryStorageCache where Next.Cached == Cached, CacheID == S
     }
 }
 
-public extension TemporaryStorageCache where Next.Cached == Cached, CacheID == StorageID, Cached == Stored {
+public extension TemporaryStorageCache where Next.Value == Value, ID == StorageID, Value == Stored {
     init(next: Next?, storage: some ValueStorage<Stored, StorageID>) {
         self.init(
             next: next,

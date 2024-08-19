@@ -22,7 +22,7 @@ public protocol ChainableCache: Cache {
     /**
      The next cache in the chain must use the same kind of cache ID, although it may interpret it differently.
      */
-    associatedtype Next: Cache where Next.CacheID == CacheID
+    associatedtype Next: Cache where Next.ID == ID
 
     /**
      The next cache in the chain. May be `nil` which means this is the last cache in the chain.
@@ -35,7 +35,7 @@ public protocol ChainableCache: Cache {
      - Parameter nextValue: The value returned from `next`.
      - Returns: An equivalent value of the type managed by the caller.
      */
-    func processFromNext(nextValue: Next.Cached) async throws -> Cached
+    func processFromNext(nextValue: Next.Value) async throws -> Value
 
     /**
      Stores a value returned from `next` into this cache's storage.
@@ -47,16 +47,16 @@ public protocol ChainableCache: Cache {
      - Parameter value: The value to store in the cache.
      - Parameter identifier: The identifier to use to store the value.
      */
-    func store(value: Cached, identifier: CacheID) async throws
+    func store(value: Value, identifier: ID) async throws
 }
 
-public extension ChainableCache where Cached == Next.Cached {
+public extension ChainableCache where Value == Next.Value {
     /**
      If the next cache's `Cached` type and ours are the same, this default implementation will just pass it along.
 
      Can still be overwritten if needed in implementations although it's not something that should happen often.
      */
-    func processFromNext(cached: Next.Cached) throws -> Cached {
+    func processFromNext(cached: Next.Value) throws -> Value {
         cached
     }
 }

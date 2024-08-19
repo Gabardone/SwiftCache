@@ -50,7 +50,7 @@ public extension TemporaryStorageCache where StorageID == URL, Stored == Data {
 
 // MARK: - Helper Initializers
 
-public extension TemporaryStorageCache where Next.Cached == Cached, StorageID == URL, Stored == Data {
+public extension TemporaryStorageCache where Next.Value == Value, StorageID == URL, Stored == Data {
     init(
         next: Next?,
         storage: some ValueStorage<Stored, StorageID>,
@@ -69,7 +69,7 @@ public extension TemporaryStorageCache where Next.Cached == Cached, StorageID ==
     }
 }
 
-public extension TemporaryStorageCache where Cached == Stored, StorageID == URL, Stored == Data {
+public extension TemporaryStorageCache where Value == Stored, StorageID == URL, Stored == Data {
     init(
         next: Next?,
         storage: some ValueStorage<Stored, StorageID>,
@@ -87,7 +87,7 @@ public extension TemporaryStorageCache where Cached == Stored, StorageID == URL,
     }
 }
 
-public extension TemporaryStorageCache where Next.Cached == Cached, Cached == Stored, StorageID == URL, Stored == Data {
+public extension TemporaryStorageCache where Next.Value == Value, Value == Stored, StorageID == URL, Stored == Data {
     init(next: Next?, storage: some ValueStorage<Stored, StorageID>, rootDirectory: URL) {
         self.init(
             next: next,

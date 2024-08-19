@@ -2,67 +2,130 @@
 //  Cache.swift
 //
 //
-//  Created by Óscar Morales Vivó on 4/21/23.
+//  Created by Óscar Morales Vivó on 4/23/23.
 //
 
 import Foundation
-import os
+
+/// Namespace `enum` for cache building.
+public enum Cache {}
 
 /**
- Module-wide logger object.
+ A cache component that sources the values.
+
+ This type is meant to be used as the start of a cache setup, either fetching or generating the values that will be
+ stored by subsequent steps. It has no smarts beyond calling the block it's set up with a given `id`, if you want to
+ avoid redundant work you should attach a `CoordinatedCache` to it.
+
+ Common examples would be network-backed value fetching (see `NetworkSource` for a simple baseline one) or expensive
+ image generation.
  */
-extension Logger {
-    static let cache = Logger(subsystem: "CacheLogging", category: "SwiftCache")
+public struct Cache<ID: Hashable, Value, ValueProvider: SwiftCache.ValueProvider> where ValueProvider.ID == ID, ValueProvider.Value == Value {
+
+    // MARK: - Lifetime
+
+    /**
+     Private initializer. Use the extension ones to initialize.
+
+     To placate the Swift type system while allowing for sync and/or non-throwing `Source` types, the initializer is
+     kept private and all the creation is externally done with the `extension` initializers.
+     - Parameter storage: The storage where we will attempt to fetch values from.
+     - Parameter idConverter: A block that converts cache IDs to storage IDs for the cache's storage.
+     - Parameter fromStorageConverter: A block that converts storage values into cache values.
+     */
+    init(valueProvider: ValueProvider) {
+        self.valueProvider = valueProvider
+    }
+
+    // MARK: - Stored Properties
+
+    private let valueProvider: ValueProvider
 }
 
 /**
- An interface to an asynchronous cache of identifiable resources.
+ Functionality wrapper.
 
- A cache is defined by the kinds of `Cached` values it stores and the `CacheID` used to access them.
-
- Values are meant to be static for the identifier, such that the same identifier will always return the exact same value
- if it remained cached.
+ This is an unfortunate leaky abstraction to help allow for non-throwing and/or non-async `Source` adoptions of `Cache`.
+ Do not use directly.
  */
-public protocol Cache<Cached, CacheID>: Actor {
-    /**
-     The type of values that the cache manages. Can be most anything.
-     */
-    associatedtype Cached
+public protocol ValueProvider {
+    associatedtype ID: Hashable
 
-    /*
-     The ID used to identify cached values. While different caches may treat a given ID differently, we still require
-     that it adopts `Hashable` as to help guarantee that the same value ID will lead to the same value quickly and
-     repeatably.
-     */
-    associatedtype CacheID: Hashable
+    associatedtype Value
+}
 
-    /**
-     Returns the cached value for the given value ID in the calling cache.
+// MARK: - Sync Cache
 
-     The method returns `nil` if the resource can not be found in the cache. It may `throw` if the operation of
-     attempting to fetch the value fails in any other way. The errors thrown (if any) will depend on the cache type.
-     - Parameter identifier: The cache ID for the resource.
-     - Returns: The value, or `nil` if not present in the cache.
-     */
-    func cachedValueWith(identifier: CacheID) async throws -> Cached?
+public struct SyncValueProvider<ID: Hashable, Value>: ValueProvider {
+    public typealias ID = ID
+    public typealias Value = Value
 
-    /**
-     Invalidates (removes) the cached value (if any) for the given identifer.
+    fileprivate let block: (ID) -> Value
+}
 
-     While most usage of `Cache` is meant to be for stable caches (same ID always corresponds to same value) there are
-     a few circumstances where invalidating a cached value may be recommended:
-     1. When it is positively known that a value will no longer be needed and we want to free any resources it may be
-     using.
-     2. If there is some corruption or error of the value and we want to retry re-fetching (or re-generating) it again.
+extension Cache: SyncCache where ValueProvider == SyncValueProvider<ID, Value> {
+    public func cachedValueWith(id: ID) -> Value {
+        valueProvider.block(id)
+    }
 
-     There's no universally valid way for a cache to deal with either case so the method is declared on the API for use
-     when there's no other good way around the need for manual invalidation.
+    public init(valueProvider: @escaping (ID) -> Value) {
+        self.valueProvider =  ValueProvider(block: valueProvider)
+    }
+}
 
-     For caches that generate or get their values from readonly sources the caller should `await` the result of the
-     method for a value before trying to get it again.
+// MARK: - Throwing Sync Cache
 
-     Generating or readonly caches can and will do nothing when this method is called.
-     - Parameter identifier: Identifier for the cache entry we want invalidated.
-     */
-    func invalidateCachedValueFor(identifier: CacheID) async throws
+public struct ThrowingValueProvider<ID: Hashable, Value>: ValueProvider {
+    public typealias ID = ID
+    public typealias Value = Value
+
+    fileprivate let block: (ID) throws -> Value
+}
+
+extension Cache: ThrowingSyncCache where ValueProvider == ThrowingValueProvider<ID, Value> {
+    public func cachedValueWith(id: ID) throws -> Value {
+        try valueProvider.block(id)
+    }
+
+    public init(valueProvider: @escaping (ID) throws -> Value) {
+        self.valueProvider = ThrowingValueProvider(block: valueProvider)
+    }
+}
+
+// MARK: - Async Cache
+
+public struct AsyncValueProvider<ID: Hashable, Value>: ValueProvider {
+    public typealias ID = ID
+    public typealias Value = Value
+
+    fileprivate let block: (ID) async -> Value
+}
+
+extension Cache: AsyncCache where ValueProvider == AsyncValueProvider<ID, Value> {
+    public func cachedValueWith(id: ID) async -> Value {
+        await valueProvider.block(id)
+    }
+
+    public init(valueProvider: @escaping (ID) async -> Value) {
+        self.valueProvider = AsyncValueProvider(block: valueProvider)
+    }
+}
+
+// MARK: - Throwing Async Cache
+
+public struct ThrowingAsyncValueProvider<ID: Hashable, Value>: ValueProvider {
+    public typealias ID = ID
+    public typealias Value = Value
+
+    fileprivate let block: (ID) async throws -> Value
+}
+
+extension Cache: ThrowingAsyncCache where ValueProvider == ThrowingAsyncValueProvider<ID, Value> {
+    public func cachedValueWith(id: ID) async throws -> Value {
+        try await valueProvider.block(id)
+    }
+
+    public init(valueProvider: @escaping (ID) async throws -> Value) {
+        self.valueProvider = ThrowingAsyncValueProvider(block: valueProvider)
+    }
 }
