@@ -28,7 +28,15 @@ public protocol SyncCache<ID, Value> {
      - Parameter id: The cache ID for the resource.
      - Returns: The value, or `nil` if not present in the cache.
      */
-    func cachedValueWith(id: ID) async throws -> Value
+    func cachedValueWith(id: ID) -> Value
+
+    /**
+     Type-erase the caller.
+
+     The method returns a type-erased value type that wraps the caller. Use this when it's better to use specific value
+     types to manage your caches.
+     */
+    func eraseToAnyCache() -> AnySyncCache<ID, Value>
 }
 
 public protocol AsyncCache<ID, Value> {
