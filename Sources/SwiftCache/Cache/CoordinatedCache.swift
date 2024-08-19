@@ -23,10 +23,11 @@ private actor CoordinatedSyncCache<
 
 extension CoordinatedSyncCache: AsyncCache {
     public func cachedValueWith(id: ID) async -> Value {
-        if let ongoingTask = taskManager[id] {
-            // Avoid reentrancy, just wait for the ongoing task that is already doing the stuff.
-            return await ongoingTask.value
-        } else {
+        await taskFor(id: id).value
+    }
+
+    private func taskFor(id: ID) -> Task<Value, Never> {
+        taskManager[id] ?? {
             let newTask = Task {
                 let result = parent.cachedValueWith(id: id)
                 taskManager.removeValue(forKey: id)
@@ -34,17 +35,134 @@ extension CoordinatedSyncCache: AsyncCache {
             }
 
             taskManager[id] = newTask
-            return try await newTask.value
-        }
+            return newTask
+        }()
     }
 }
 
 extension SyncCache {
-    func coordinated() -> some AsyncCache {
+    public func coordinated() -> some AsyncCache {
         CoordinatedSyncCache(parent: self)
     }
 }
 
-private actor CoordinatedAsyncCache {
+private actor CoordinatedThrowingSyncCache<
+    ID: Hashable,
+    Value,
+    Parent: ThrowingSyncCache
+> where Parent.ID == ID, Parent.Value == Value {
+    init(parent: Parent) {
+        self.parent = parent
+    }
 
+    let parent: Parent
+
+    var taskManager = [ID: Task<Value, Error>]()
+}
+
+extension CoordinatedThrowingSyncCache: ThrowingAsyncCache {
+    public func cachedValueWith(id: ID) async throws -> Value {
+        try await taskFor(id: id).value
+    }
+
+    private func taskFor(id: ID) -> Task<Value, Error> {
+        taskManager[id] ?? {
+            let newTask = Task { [self] in
+                defer {
+                    self.taskManager.removeValue(forKey: id)
+                }
+
+                return try self.parent.cachedValueWith(id: id)
+            }
+
+            taskManager[id] = newTask
+            return newTask
+        }()
+    }
+}
+
+extension ThrowingSyncCache {
+    public func coordinated() -> some ThrowingAsyncCache {
+        CoordinatedThrowingSyncCache(parent: self)
+    }
+}
+
+private actor CoordinatedAsyncCache<
+    ID: Hashable,
+    Value,
+    Parent: AsyncCache
+> where Parent.ID == ID, Parent.Value == Value {
+    init(parent: Parent) {
+        self.parent = parent
+    }
+
+    let parent: Parent
+
+    var taskManager = [ID: Task<Value, Never>]()
+}
+
+extension CoordinatedAsyncCache: AsyncCache {
+    public func cachedValueWith(id: ID) async -> Value {
+        await taskFor(id: id).value
+    }
+
+    private func taskFor(id: ID) -> Task<Value, Never> {
+        taskManager[id] ?? {
+            let newTask = Task {
+                let result = await parent.cachedValueWith(id: id)
+                taskManager.removeValue(forKey: id)
+                return result
+            }
+
+            taskManager[id] = newTask
+            return newTask
+        }()
+    }
+}
+
+extension AsyncCache {
+    public func coordinated() -> some AsyncCache {
+        CoordinatedAsyncCache(parent: self)
+    }
+}
+
+private actor CoordinatedThrowingAsyncCache<
+    ID: Hashable,
+    Value,
+    Parent: ThrowingAsyncCache
+> where Parent.ID == ID, Parent.Value == Value {
+    init(parent: Parent) {
+        self.parent = parent
+    }
+
+    let parent: Parent
+
+    var taskManager = [ID: Task<Value, Error>]()
+}
+
+extension CoordinatedThrowingAsyncCache: ThrowingAsyncCache {
+    public func cachedValueWith(id: ID) async throws -> Value {
+        try await taskFor(id: id).value
+    }
+
+    private func taskFor(id: ID) -> Task<Value, Error> {
+        taskManager[id] ?? {
+            let newTask = Task { [self] in
+                defer {
+                    self.taskManager.removeValue(forKey: id)
+                }
+
+                return try await self.parent.cachedValueWith(id: id)
+            }
+
+            taskManager[id] = newTask
+            return newTask
+        }()
+    }
+}
+
+extension ThrowingAsyncCache {
+    public func coordinated() -> some ThrowingAsyncCache {
+        CoordinatedThrowingAsyncCache(parent: self)
+    }
 }

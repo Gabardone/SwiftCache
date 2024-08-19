@@ -14,44 +14,48 @@ import Foundation
 
  The type is an `actor` as to ensure thread safety for access to its internal storage.
  */
-public actor WeakObjectStorage<Object: AnyObject, StorageID: Hashable> {
+public struct WeakObjectStorage<ID: Hashable, Value: AnyObject> {
     public init() {}
-
-    // MARK: - Types
-
-    /**
-     A simple, private wrapper type so non-object and non-Obj-C types can be used with a `NSMapTable`. An implementation
-     detail.
-     */
-    private class KeyWrapper {
-        init(wrapping: StorageID) {
-            self.wrapping = wrapping
-        }
-
-        let wrapping: StorageID
-    }
 
     // MARK: - Stored Properties
 
-    private let weakObjects = NSMapTable<KeyWrapper, Object>.strongToWeakObjects()
+    private let weakObjects = NSMapTable<KeyWrapper<ID>, Value>.strongToWeakObjects()
 }
 
-extension WeakObjectStorage: ValueSource {
-    public typealias Stored = Object
+extension WeakObjectStorage: SyncStorage {
+    public func valueFor(id: ID) -> Value? {
+        weakObjects.object(forKey: .init(wrapping: id))
+    }
 
-    public typealias StorageID = StorageID
-
-    public func valueFor(identifier: StorageID) -> Object? {
-        weakObjects.object(forKey: .init(wrapping: identifier))
+    public func store(value: Value, id: ID) {
+        weakObjects.setObject(value, forKey: .init(wrapping: id))
     }
 }
 
-extension WeakObjectStorage: ValueStorage {
-    public func store(value: Object, identifier: StorageID) {
-        weakObjects.setObject(value, forKey: .init(wrapping: identifier))
+/**
+ A simple, private wrapper type so non-object and non-Obj-C types can be used with a `NSMapTable`. An implementation
+ detail.
+ */
+private class KeyWrapper<ID: Hashable>: NSCopying {
+    func copy(with zone: NSZone? = nil) -> Any {
+        self
     }
 
-    public func removeValueFor(identifier: StorageID) {
-        weakObjects.removeObject(forKey: .init(wrapping: identifier))
+    init(wrapping: ID) {
+        self.wrapping = wrapping
+    }
+
+    let wrapping: ID
+}
+
+extension KeyWrapper: Equatable {
+    static func == (lhs: KeyWrapper<ID>, rhs: KeyWrapper<ID>) -> Bool {
+        lhs.wrapping == rhs.wrapping
+    }
+}
+
+extension KeyWrapper: Hashable {
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(wrapping)
     }
 }

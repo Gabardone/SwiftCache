@@ -7,65 +7,50 @@
 
 import Foundation
 
-/**
- Simple storage implementation that can be built by hand.
-
- Set up its override blocks to specify the behavior you want.
-
- Doubles as a mock type for testing. For real implementations make sure to set up all behaviors.
-
- Declared as a reference type so the overrides can be "safely" swapped during a test.
- */
-public class ComposableStorage<Stored, StorageID: Hashable> {
-    /// Swift made us declare this.
+public struct ComposableSyncStorage<ID: Hashable, Value> {
     public init(
-        storeOverride: ((Stored, StorageID) async throws -> Void)? = nil,
-        valueForOverride: ((StorageID) async throws -> Stored)? = nil
+        valueForID: @escaping (ID) -> Value? = { _ in nil },
+        storeValueForID: @escaping (Value, ID) -> Void = { _, _ in }
     ) {
-        self.storeOverride = storeOverride
-        self.valueForOverride = valueForOverride
+        self.valueForID = valueForID
+        self.storeValueForID = storeValueForID
     }
 
-    // MARK: - Types
+    public let valueForID: (ID) -> Value?
 
-    /// Error thrown when a method is called with no override set.
-    struct UnimplementedError: Error {}
-
-    // MARK: - Stored Properties
-
-    public var storeOverride: ((Stored, StorageID) async throws -> Void)?
-
-    public var valueForOverride: ((StorageID) async throws -> Stored?)?
-
-    public var removeValueForOverride: ((StorageID) async throws -> Void)?
+    public let storeValueForID: (Value, ID) -> Void
 }
 
-extension ComposableStorage: ValueStorage {
-    public typealias Stored = Stored
-
-    public typealias StorageID = StorageID
-
-    public func store(value: Stored, identifier: StorageID) async throws {
-        guard let storeOverride else {
-            throw UnimplementedError()
-        }
-
-        try await storeOverride(value, identifier)
+extension ComposableSyncStorage: SyncStorage {
+    public func valueFor(id: ID) -> Value? {
+        valueForID(id)
     }
 
-    public func valueFor(identifier: StorageID) async throws -> Stored? {
-        guard let valueForOverride else {
-            throw UnimplementedError()
-        }
+    public func store(value: Value, id: ID) {
+        storeValueForID(value, id)
+    }
+}
 
-        return try await valueForOverride(identifier)
+public struct ComposableAsyncStorage<ID: Hashable, Value> {
+    public init(
+        valueForID: @escaping (ID) async -> Value? = { _ in nil },
+        storeValueForID: @escaping (Value, ID) async -> Void = { _, _ in }
+    ) {
+        self.valueForID = valueForID
+        self.storeValueForID = storeValueForID
     }
 
-    public func removeValueFor(identifier: StorageID) async throws {
-        guard let removeValueForOverride else {
-            throw UnimplementedError()
-        }
+    public let valueForID: (ID) async -> Value?
 
-        return try await removeValueForOverride(identifier)
+    public let storeValueForID: (Value, ID) async -> Void
+}
+
+extension ComposableAsyncStorage: AsyncStorage {
+    public func valueFor(id: ID) async -> Value? {
+        await valueForID(id)
+    }
+
+    public func store(value: Value, id: ID) async {
+        await storeValueForID(value, id)
     }
 }
