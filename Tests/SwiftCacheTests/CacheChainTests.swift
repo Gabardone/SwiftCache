@@ -202,6 +202,7 @@ final class CacheChainTests: XCTestCase {
     }
 
     // Tests that retrying works if source is good the second time (no crap left behind on error).
+    // swiftlint:disable:next function_body_length
     func testRemoteDataIsBadButRetryWorks() async throws {
         let networkSourceExpectation = expectation(description: "Network source was called as expected.")
         networkSourceExpectation.expectedFulfillmentCount = 2
