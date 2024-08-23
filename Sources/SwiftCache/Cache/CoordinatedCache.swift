@@ -41,7 +41,7 @@ extension CoordinatedSyncCache: AsyncCache {
 }
 
 extension SyncCache {
-    public func coordinated() -> some AsyncCache {
+    public func coordinated() -> some AsyncCache<ID, Value> {
         CoordinatedSyncCache(parent: self)
     }
 }
@@ -82,7 +82,7 @@ extension CoordinatedThrowingSyncCache: ThrowingAsyncCache {
 }
 
 extension ThrowingSyncCache {
-    public func coordinated() -> some ThrowingAsyncCache {
+    public func coordinated() -> some ThrowingAsyncCache<ID, Value> {
         CoordinatedThrowingSyncCache(parent: self)
     }
 }
@@ -121,7 +121,7 @@ extension CoordinatedAsyncCache: AsyncCache {
 }
 
 extension AsyncCache {
-    public func coordinated() -> some AsyncCache {
+    public func coordinated() -> some AsyncCache<ID, Value> {
         CoordinatedAsyncCache(parent: self)
     }
 }
@@ -162,7 +162,7 @@ extension CoordinatedThrowingAsyncCache: ThrowingAsyncCache {
 }
 
 extension ThrowingAsyncCache {
-    public func coordinated() -> some ThrowingAsyncCache {
+    public func coordinated() -> some ThrowingAsyncCache<ID, Value> {
         CoordinatedThrowingAsyncCache(parent: self)
     }
 }

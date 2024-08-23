@@ -1,5 +1,5 @@
 //
-//  ComposableStorage.swift
+//  AnyStorage.swift
 //  SwiftCache
 //
 //  Created by Óscar Morales Vivó on 4/11/23.
@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct ComposableSyncStorage<ID: Hashable, Value> {
+public struct AnySyncStorage<ID: Hashable, Value> {
     public init(
         valueForID: @escaping (ID) -> Value? = { _ in nil },
         storeValueForID: @escaping (Value, ID) -> Void = { _, _ in }
@@ -21,7 +21,7 @@ public struct ComposableSyncStorage<ID: Hashable, Value> {
     public let storeValueForID: (Value, ID) -> Void
 }
 
-extension ComposableSyncStorage: SyncStorage {
+extension AnySyncStorage: SyncStorage {
     public func valueFor(id: ID) -> Value? {
         valueForID(id)
     }
@@ -31,7 +31,17 @@ extension ComposableSyncStorage: SyncStorage {
     }
 }
 
-public struct ComposableAsyncStorage<ID: Hashable, Value> {
+extension SyncStorage {
+    func eraseToAnyStorage() -> AnySyncStorage<ID, Value> {
+        AnySyncStorage { id in
+            valueFor(id: id)
+        } storeValueForID: { value, id in
+            store(value: value, id: id)
+        }
+    }
+}
+
+public struct AnyAsyncStorage<ID: Hashable, Value> {
     public init(
         valueForID: @escaping (ID) async -> Value? = { _ in nil },
         storeValueForID: @escaping (Value, ID) async -> Void = { _, _ in }
@@ -45,12 +55,22 @@ public struct ComposableAsyncStorage<ID: Hashable, Value> {
     public let storeValueForID: (Value, ID) async -> Void
 }
 
-extension ComposableAsyncStorage: AsyncStorage {
+extension AnyAsyncStorage: AsyncStorage {
     public func valueFor(id: ID) async -> Value? {
         await valueForID(id)
     }
 
     public func store(value: Value, id: ID) async {
         await storeValueForID(value, id)
+    }
+}
+
+extension AsyncStorage {
+    func eraseToAnyStorage() -> AnyAsyncStorage<ID, Value> {
+        AnyAsyncStorage { id in
+            await valueFor(id: id)
+        } storeValueForID: { value, id in
+            await store(value: value, id: id)
+        }
     }
 }

@@ -8,19 +8,19 @@
 import Foundation
 
 extension SyncCache {
-    func mapID<OtherID: Hashable>(_ transform: @escaping (OtherID) -> ID) -> some SyncCache<OtherID, Value> {
+    public func mapID<OtherID: Hashable>(_ transform: @escaping (OtherID) -> ID) -> some SyncCache<OtherID, Value> {
         AnySyncCache { otherID in
             cachedValueWith(id: transform(otherID))
         }
     }
 
-    func mapValue<OtherValue>(_ transform: @escaping (Value) -> OtherValue) -> some SyncCache<ID, OtherValue> {
+    public func mapValue<OtherValue>(_ transform: @escaping (Value) -> OtherValue) -> some SyncCache<ID, OtherValue> {
         AnySyncCache { id in
             transform(cachedValueWith(id: id))
         }
     }
 
-    func mapValue<OtherValue>(
+    public func mapValue<OtherValue>(
         _ transform: @escaping (Value) throws -> OtherValue
     ) -> some ThrowingSyncCache<ID, OtherValue> {
         AnyThrowingSyncCache { id in
@@ -28,13 +28,13 @@ extension SyncCache {
         }
     }
 
-    func mapValue<OtherValue>(_ transform: @escaping (Value) async -> OtherValue) -> some AsyncCache<ID, OtherValue> {
+    public func mapValue<OtherValue>(_ transform: @escaping (Value) async -> OtherValue) -> some AsyncCache<ID, OtherValue> {
         AnyAsyncCache { id in
             await transform(cachedValueWith(id: id))
         }
     }
 
-    func mapValue<OtherValue>(
+    public func mapValue<OtherValue>(
         _ transform: @escaping (Value) async throws -> OtherValue
     ) -> some ThrowingAsyncCache<ID, OtherValue> {
         AnyThrowingAsyncCache { id in
@@ -44,13 +44,13 @@ extension SyncCache {
 }
 
 extension ThrowingSyncCache {
-    func mapID<OtherID: Hashable>(_ transform: @escaping (OtherID) -> ID) -> some ThrowingSyncCache<OtherID, Value> {
+    public func mapID<OtherID: Hashable>(_ transform: @escaping (OtherID) -> ID) -> some ThrowingSyncCache<OtherID, Value> {
         AnyThrowingSyncCache { otherID in
             try cachedValueWith(id: transform(otherID))
         }
     }
 
-    func mapValue<OtherValue>(
+    public func mapValue<OtherValue>(
         _ transform: @escaping (Result<Value, Error>) -> OtherValue
     ) -> some SyncCache<ID, OtherValue> {
         AnySyncCache { id in
@@ -60,7 +60,7 @@ extension ThrowingSyncCache {
         }
     }
 
-    func mapValue<OtherValue>(
+    public func mapValue<OtherValue>(
         _ transform: @escaping (Value) throws -> OtherValue
     ) -> some ThrowingSyncCache<ID, OtherValue> {
         AnyThrowingSyncCache { id in
@@ -68,7 +68,7 @@ extension ThrowingSyncCache {
         }
     }
 
-    func mapValue<OtherValue>(
+    public func mapValue<OtherValue>(
         _ transform: @escaping (Result<Value, Error>) throws -> OtherValue
     ) -> some ThrowingSyncCache<ID, OtherValue> {
         AnyThrowingSyncCache { id in
@@ -78,7 +78,7 @@ extension ThrowingSyncCache {
         }
     }
 
-    func mapValue<OtherValue>(
+    public func mapValue<OtherValue>(
         _ transform: @escaping (Result<Value, Error>) async -> OtherValue
     ) -> some AsyncCache<ID, OtherValue> {
         AnyAsyncCache { id in
@@ -88,7 +88,7 @@ extension ThrowingSyncCache {
         }
     }
 
-    func mapValue<OtherValue>(
+    public func mapValue<OtherValue>(
         _ transform: @escaping (Value) async throws -> OtherValue
     ) -> some ThrowingAsyncCache<ID, OtherValue> {
         AnyThrowingAsyncCache { id in
@@ -96,7 +96,7 @@ extension ThrowingSyncCache {
         }
     }
 
-    func mapValue<OtherValue>(
+    public func mapValue<OtherValue>(
         _ transform: @escaping (Result<Value, Error>) async throws -> OtherValue
     ) -> some ThrowingAsyncCache<ID, OtherValue> {
         AnyThrowingAsyncCache { id in
@@ -108,19 +108,19 @@ extension ThrowingSyncCache {
 }
 
 extension AsyncCache {
-    func mapID<OtherID: Hashable>(_ transform: @escaping (OtherID) -> ID) -> some AsyncCache<OtherID, Value> {
+    public func mapID<OtherID: Hashable>(_ transform: @escaping (OtherID) -> ID) -> some AsyncCache<OtherID, Value> {
         AnyAsyncCache { otherID in
             await cachedValueWith(id: transform(otherID))
         }
     }
 
-    func mapValue<OtherValue>(_ transform: @escaping (Value) -> OtherValue) -> some AsyncCache<ID, OtherValue> {
+    public func mapValue<OtherValue>(_ transform: @escaping (Value) -> OtherValue) -> some AsyncCache<ID, OtherValue> {
         AnyAsyncCache { id in
             transform(await cachedValueWith(id: id))
         }
     }
 
-    func mapValue<OtherValue>(
+    public func mapValue<OtherValue>(
         _ transform: @escaping (Value) throws -> OtherValue
     ) -> some ThrowingAsyncCache<ID, OtherValue> {
         AnyThrowingAsyncCache { id in
@@ -128,13 +128,13 @@ extension AsyncCache {
         }
     }
 
-    func mapValue<OtherValue>(_ transform: @escaping (Value) async -> OtherValue) -> some AsyncCache<ID, OtherValue> {
+    public func mapValue<OtherValue>(_ transform: @escaping (Value) async -> OtherValue) -> some AsyncCache<ID, OtherValue> {
         AnyAsyncCache { id in
             await transform(await cachedValueWith(id: id))
         }
     }
 
-    func mapValue<OtherValue>(
+    public func mapValue<OtherValue>(
         _ transform: @escaping (Value) async throws -> OtherValue
     ) -> some ThrowingAsyncCache<ID, OtherValue> {
         AnyThrowingAsyncCache { id in
@@ -144,23 +144,23 @@ extension AsyncCache {
 }
 
 extension ThrowingAsyncCache {
-    func mapID<OtherID: Hashable>(_ transform: @escaping (OtherID) -> ID) -> some ThrowingAsyncCache<OtherID, Value> {
+    public func mapID<OtherID: Hashable>(_ transform: @escaping (OtherID) -> ID) -> some ThrowingAsyncCache<OtherID, Value> {
         AnyThrowingAsyncCache { otherID in
             try await cachedValueWith(id: transform(otherID))
         }
     }
 
-    func mapValue<OtherValue>(
+    public func mapValue<OtherValue>(
         _ transform: @escaping (Result<Value, Error>) -> OtherValue
     ) -> some AsyncCache<ID, OtherValue> {
         AnyAsyncCache { id in
-            return transform(await .init(catching: {
+            return transform(await .init(asyncCatching: {
                 try await cachedValueWith(id: id)
             }))
         }
     }
 
-    func mapValue<OtherValue>(
+    public func mapValue<OtherValue>(
         _ transform: @escaping (Value) throws -> OtherValue
     ) -> some ThrowingAsyncCache<ID, OtherValue> {
         AnyThrowingAsyncCache { id in
@@ -168,27 +168,27 @@ extension ThrowingAsyncCache {
         }
     }
 
-    func mapValue<OtherValue>(
+    public func mapValue<OtherValue>(
         _ transform: @escaping (Result<Value, Error>) throws -> OtherValue
     ) -> some ThrowingAsyncCache<ID, OtherValue> {
         AnyThrowingAsyncCache { id in
-            return try transform(await .init(catching: {
+            return try transform(await .init(asyncCatching: {
                 try await cachedValueWith(id: id)
             }))
         }
     }
 
-    func mapValue<OtherValue>(
+    public func mapValue<OtherValue>(
         _ transform: @escaping (Result<Value, Error>) async -> OtherValue
     ) -> some AsyncCache<ID, OtherValue> {
         AnyAsyncCache { id in
-            return await transform(await .init(catching: {
+            return await transform(await .init(asyncCatching: {
                 try await cachedValueWith(id: id)
             }))
         }
     }
 
-    func mapValue<OtherValue>(
+    public func mapValue<OtherValue>(
         _ transform: @escaping (Value) async throws -> OtherValue
     ) -> some ThrowingAsyncCache<ID, OtherValue> {
         AnyThrowingAsyncCache { id in
@@ -196,23 +196,13 @@ extension ThrowingAsyncCache {
         }
     }
 
-    func mapValue<OtherValue>(
+    public func mapValue<OtherValue>(
         _ transform: @escaping (Result<Value, Error>) async throws -> OtherValue
     ) -> some ThrowingAsyncCache<ID, OtherValue> {
         AnyThrowingAsyncCache { id in
-            try await transform(await .init(catching: {
+            try await transform(await .init(asyncCatching: {
                 try await cachedValueWith(id: id)
             }))
-        }
-    }
-}
-
-private extension Result where Failure == Error {
-    init(catching body: () async throws -> Success) async {
-        do {
-            self = .success(try await body())
-        } catch {
-            self = .failure(error)
         }
     }
 }

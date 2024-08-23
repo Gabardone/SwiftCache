@@ -1,5 +1,5 @@
 //
-//  TemporaryStorage.swift
+//  StorageCache.swift
 //
 //
 //  Created by Óscar Morales Vivó on 8/18/24.

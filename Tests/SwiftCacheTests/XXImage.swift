@@ -10,9 +10,6 @@ import Foundation
 #if os(macOS)
 import Cocoa
 
-// Shuts up the `Sendable` warnings in the tests.
-extension NSImage: @unchecked Sendable {}
-
 typealias XXImage = NSImage
 
 extension XXImage {

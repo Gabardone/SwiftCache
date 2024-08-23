@@ -36,7 +36,7 @@ extension WeakObjectStorage: SyncStorage {
  A simple, private wrapper type so non-object and non-Obj-C types can be used with a `NSMapTable`. An implementation
  detail.
  */
-private class KeyWrapper<ID: Hashable>: NSCopying {
+private class KeyWrapper<ID: Hashable>: NSObject, NSCopying {
     func copy(with zone: NSZone? = nil) -> Any {
         self
     }
@@ -46,16 +46,18 @@ private class KeyWrapper<ID: Hashable>: NSCopying {
     }
 
     let wrapping: ID
-}
 
-extension KeyWrapper: Equatable {
-    static func == (lhs: KeyWrapper<ID>, rhs: KeyWrapper<ID>) -> Bool {
-        lhs.wrapping == rhs.wrapping
+    // Because of `NSMapTable` quaint old ways we have to override the `NSObject` versions for equality.
+    override func isEqual(_ other: Any?) -> Bool {
+        guard let otherWrapper = other as? Self else {
+            return false
+        }
+
+        return self.wrapping == otherWrapper.wrapping
     }
-}
 
-extension KeyWrapper: Hashable {
-    func hash(into hasher: inout Hasher) {
-        hasher.combine(wrapping)
+    // Because of `NSMapTable` quaint old ways we have to override the `NSObject` versions for hashing.
+    override var hash: Int {
+        wrapping.hashValue
     }
 }

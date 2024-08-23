@@ -20,18 +20,13 @@ let package = Package(
             targets: ["SwiftCache"]
         )
     ],
-    dependencies: [
-        .package(url: "https://github.com/Gabardone/FileSystemDependency.git", .upToNextMajor(from: "1.0.1")),
-        .package(url: "https://github.com/Gabardone/NetworkDependency.git", .upToNextMajor(from: "4.0.1"))
-    ],
     targets: [
         .target(
-            name: "SwiftCache",
-            dependencies: ["FileSystemDependency", "NetworkDependency"]
+            name: "SwiftCache"
         ),
         .testTarget(
             name: "SwiftCacheTests",
-            dependencies: ["NetworkDependency", "SwiftCache"]
+            dependencies: ["SwiftCache"]
         )
     ]
 )

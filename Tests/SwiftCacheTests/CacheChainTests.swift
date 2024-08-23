@@ -6,6 +6,7 @@
 //
 
 import SwiftCache
+import System
 import XCTest
 
 final class CacheChainTests: XCTestCase {
@@ -13,315 +14,256 @@ final class CacheChainTests: XCTestCase {
 
     private static let dummyURL = URL(string: "https://zombo.com/")!
 
-    private typealias MockImageStorage = ComposableStorage<XXImage, URL>
-
-    private typealias MockNetworkStorage = ComposableStorage<Data, URL>
-
-    private typealias MockLocalStorage = ComposableStorage<Data, String>
-
-    private struct MockImageCache {
-        var cache: any Cache<XXImage, URL>
-
-        var inMemoryStorage: MockImageStorage
-
-        var localStorage: MockLocalStorage
-
-        var networkStorage: MockNetworkStorage
-    }
-
     private struct ImageConversionError: Error {}
 
     /**
      We're using a mock of a three-level cache (in-memory/local file storage/network fetch).
      */
-    private static func buildImageCache() -> MockImageCache {
-        let networkStorage = MockNetworkStorage()
-        let networkCache = BackstopStorageCache(storage: networkStorage)
-
-        let localStorage = MockLocalStorage()
-        let localCache = TemporaryStorageCache(next: networkCache, storage: localStorage, idConverter: { url in
-            url.lastPathComponent
-        })
-
-        let inMemoryStorage = MockImageStorage()
-        let inMemoryCache = TemporaryStorageCache(next: localCache, storage: inMemoryStorage) { data in
-            if let image = XXImage(data: data) {
-                return image
-            } else {
-                throw ImageConversionError()
-            }
-        }
-
-        return .init(
-            cache: inMemoryCache,
-            inMemoryStorage: inMemoryStorage,
-            localStorage: localStorage,
-            networkStorage: networkStorage
-        )
-    }
-
-    private func expectNoInMemory(imageCache: MockImageCache) -> XCTestExpectation {
-        let inMemoryReadExpectation = expectation(description: "No in memory image found")
-        imageCache.inMemoryStorage.valueForOverride = { url in
-            XCTAssertEqual(url, Self.dummyURL)
-            inMemoryReadExpectation.fulfill()
+    private static func buildImageCache(
+        preloadedWeakObjectStorage: WeakObjectStorage<URL, XXImage>? = nil,
+        source: @escaping (URL) async throws -> Data = { url in
+            XCTFail("Unexpected call to network source.")
+            return badImageData
+        },
+        localStorageFetch: @escaping (FilePath) -> Data? = { _ in
+            XCTFail("Unexpected call to local storage fetch.")
             return nil
+        },
+        localStorageStore: @escaping (FilePath, Data) -> Void = { _, _ in
+            XCTFail("Unexpected call to local storage store.")
+        },
+        inMemoryFetchValidation: @escaping (URL, XXImage?) -> Void = { _, _ in
+            XCTFail("Unexpected call to in memory storage fetch.")
+        },
+        inMemoryStoreValidation: @escaping (URL, XXImage) -> Void = { _, _ in
+            XCTFail("Unexpected call to local storage store.")
         }
-        return inMemoryReadExpectation
+    ) -> some ThrowingAsyncCache<URL, XXImage> {
+        TestSource(cachedValueWithID: source)
+            .mapValue { data in
+                // We convert to image early so we validate that the data is good. We wouldn't want to store bad data.
+                guard let image = XXImage(data: data) else {
+                    throw ImageConversionError()
+                }
+
+                return (data, image)
+            }
+            .storage(TestStorage(valueForID: localStorageFetch, storeValueForID: localStorageStore)
+                .mapID { url in
+                    // You're usually going to need a `mapID` to use a `LocalFileDataStorage`
+                    FilePath(url.lastPathComponent)
+                }
+                .mapValue { (data, image) in
+                    // We're only carrying the image for validation.
+                    data
+                } fromStorage: { data in
+                    // It's ok to convert again since if we're here it means we don't have it in memory.
+                    data.flatMap { data in XXImage(data: data).map { (data, $0) } }
+                }
+            )
+            .mapValue { (_, image) in
+                // We no longer need the data after this.
+                image
+            }
+            .storage((preloadedWeakObjectStorage ?? WeakObjectStorage())
+                .validated(fetchValidation: inMemoryFetchValidation, storeValidation: inMemoryStoreValidation)
+            )
+            .coordinated() // Always finish an `async` cache chain with this one. You usually need only one at the end.
     }
 
-    private func expectInMemoryWrite(imageCache: MockImageCache) -> XCTestExpectation {
-        let inMemoryWriteExpectation = expectation(description: "Storing the image in memory")
-        imageCache.inMemoryStorage.storeOverride = { image, url in
-            inMemoryWriteExpectation.fulfill()
+    // If the data is already in-memory, immediately returns it.
+    func testInMemoryImageHappyPath() async throws {
+        let inMemoryStorage = WeakObjectStorage<URL, XXImage>()
+        inMemoryStorage.store(value: XXImage.sampleImage, id: Self.dummyURL)
+        let inMemoryFetchExpectation = expectation(description: "In-memory storage fetch was called as expected.")
 
-            // Check that it's the same image as usual.
-            XCTAssertEqual(url, Self.dummyURL)
-            XCTAssertEqual(image.size.width, XXImage.sampleImage.size.width)
-            XCTAssertEqual(image.size.height, XXImage.sampleImage.size.height)
-        }
-        return inMemoryWriteExpectation
-    }
+        let imageCache = Self.buildImageCache(
+            preloadedWeakObjectStorage: inMemoryStorage,
+            inMemoryFetchValidation: { id, value in
+                inMemoryFetchExpectation.fulfill()
+                XCTAssertEqual(id, Self.dummyURL)
+                XCTAssertEqual(value, XXImage.sampleImage)
+            }
+        )
 
-    private func expectLocalRead(imageCache: MockImageCache, returning: Data? = nil) -> XCTestExpectation {
-        let localReadExpectation = expectation(description: "Local data read")
-        imageCache.localStorage.valueForOverride = { fileName in
-            localReadExpectation.fulfill()
-            XCTAssertEqual(fileName, Self.dummyURL.lastPathComponent)
-            return returning
-        }
-        return localReadExpectation
-    }
+        let image = try await imageCache.cachedValueWith(id: Self.dummyURL)
 
-    private func expectLocalWrite(imageCache: MockImageCache) -> XCTestExpectation {
-        let localWriteExpectation = expectation(description: "Storing the image locally")
-        imageCache.localStorage.storeOverride = { data, fileName in
-            localWriteExpectation.fulfill()
-            XCTAssertEqual(fileName, Self.dummyURL.lastPathComponent)
-            XCTAssertEqual(data, XXImage.sampleImageData)
-        }
-        return localWriteExpectation
-    }
+        await fulfillment(of: [inMemoryFetchExpectation])
 
-    private func expectNetworkRead(
-        imageCache: MockImageCache,
-        returning: Data?,
-        existing: XCTestExpectation? = nil
-    ) -> XCTestExpectation {
-        let networkExpectation = existing ?? expectation(description: "Checking the network")
-        imageCache.networkStorage.valueForOverride = { url in
-            networkExpectation.fulfill()
-            XCTAssertEqual(url, Self.dummyURL)
-            return returning
-        }
-        return networkExpectation
-    }
-
-    // If no one has it, we quietly return nil.
-    func testNilIsNil() async throws {
-        let imageCache = Self.buildImageCache()
-        let networkExpectation = expectNetworkRead(imageCache: imageCache, returning: nil)
-
-        let localReadExpectation = expectLocalRead(imageCache: imageCache, returning: nil)
-
-        let inMemoryReadExpectation = expectNoInMemory(imageCache: imageCache)
-
-        let image = try await imageCache.cache.cachedValueWith(identifier: Self.dummyURL)
-
-        await fulfillment(of: [localReadExpectation, inMemoryReadExpectation, networkExpectation])
-
-        XCTAssertNil(image)
+        XCTAssertEqual(image, XXImage.sampleImage)
     }
 
     // If the data is found locally, we return it and don't do anything else weird.
     func testLocallyStoredImageDataHappyPath() async throws {
-        let imageCache = Self.buildImageCache()
-        let localReadExpectation = expectLocalRead(imageCache: imageCache, returning: XXImage.sampleImageData)
+        let localStorageFetchExpectation = expectation(description: "Local storage fetch was called as expected.")
+        let inMemoryFetchExpectation = expectation(description: "In-memory storage fetch was called as expected.")
+        let inMemoryStoreExpectation = expectation(description: "In-memory storage store was called as expected.")
 
-        let inMemoryReadExpectation = expectNoInMemory(imageCache: imageCache)
+        let imageCache = Self.buildImageCache(localStorageFetch: { filePath in
+            localStorageFetchExpectation.fulfill()
+            XCTAssertEqual(filePath, .init(Self.dummyURL.lastPathComponent))
+            return XXImage.sampleImageData
+        }, inMemoryFetchValidation: { id, value in
+            inMemoryFetchExpectation.fulfill()
+            XCTAssertEqual(id, Self.dummyURL)
+            XCTAssertEqual(value, nil)
+        }, inMemoryStoreValidation: { id, value in
+            inMemoryStoreExpectation.fulfill()
+            XCTAssertEqual(id, Self.dummyURL)
+            XCTAssertEqual(value.size, XXImage.sampleImage.size)
+        })
 
-        let inMemoryWriteExpectation = expectInMemoryWrite(imageCache: imageCache)
+        let image = try await imageCache.cachedValueWith(id: Self.dummyURL)
 
-        let image = try await imageCache.cache.cachedValueWith(identifier: Self.dummyURL)
-
-        await fulfillment(of: [localReadExpectation, inMemoryReadExpectation, inMemoryWriteExpectation])
+        await fulfillment(of: [localStorageFetchExpectation, inMemoryFetchExpectation, inMemoryStoreExpectation])
 
         // Looping image -> data -> image -> data doesn't usually result in equal data or equal images as some config
         // data gets lost, but at least we can check pixel size.
-        XCTAssertEqual(image?.size, XXImage.sampleImage.size)
+        XCTAssertEqual(image.size, XXImage.sampleImage.size)
     }
 
     // If the data is not local, we get remote and store.
     func testRemotelyStoredImageDataHappyPath() async throws {
-        let imageCache = Self.buildImageCache()
+        let networkSourceExpectation = expectation(description: "Network source was called as expected.")
+        let localStorageFetchExpectation = expectation(description: "Local storage fetch was called as expected.")
+        let localStorageStoreExpectation = expectation(description: "Local storage store was called as expected.")
+        let inMemoryFetchExpectation = expectation(description: "In-memory storage fetch was called as expected.")
+        let inMemoryStoreExpectation = expectation(description: "In-memory storage store was called as expected.")
 
-        let networkReadExpectation = expectNetworkRead(imageCache: imageCache, returning: XXImage.sampleImageData)
+        let imageCache = Self.buildImageCache { url in
+            networkSourceExpectation.fulfill()
+            XCTAssertEqual(url, Self.dummyURL)
+            return XXImage.sampleImageData
+        } localStorageFetch: { filePath in
+            localStorageFetchExpectation.fulfill()
+            XCTAssertEqual(filePath, .init(Self.dummyURL.lastPathComponent))
+            return nil
+        } localStorageStore: { filePath, data in
+            localStorageStoreExpectation.fulfill()
+            XCTAssertEqual(data, XXImage.sampleImageData)
+            XCTAssertEqual(filePath, .init(Self.dummyURL.lastPathComponent))
+        } inMemoryFetchValidation: { url, image in
+            inMemoryFetchExpectation.fulfill()
+            XCTAssertEqual(url, Self.dummyURL)
+            XCTAssertNil(image)
+        } inMemoryStoreValidation: { url, image in
+            inMemoryStoreExpectation.fulfill()
+            XCTAssertEqual(url, Self.dummyURL)
+            XCTAssertEqual(image.size, XXImage.sampleImage.size)
+        }
 
-        let localReadExpectation = expectLocalRead(imageCache: imageCache)
+        let image = try await imageCache.cachedValueWith(id: Self.dummyURL)
 
-        let localWriteExpectation = expectLocalWrite(imageCache: imageCache)
-
-        let inMemoryReadExpectation = expectNoInMemory(imageCache: imageCache)
-
-        let inMemoryWriteExpectation = expectInMemoryWrite(imageCache: imageCache)
-
-        let image = try await imageCache.cache.cachedValueWith(identifier: Self.dummyURL)
-
-        await fulfillment(of: [
-            networkReadExpectation,
-            localReadExpectation,
-            localWriteExpectation,
-            inMemoryReadExpectation,
-            inMemoryWriteExpectation
-        ])
+        await fulfillment(
+            of: [
+                networkSourceExpectation,
+                localStorageFetchExpectation,
+                localStorageStoreExpectation,
+                inMemoryFetchExpectation,
+                inMemoryStoreExpectation
+            ]
+        )
 
         // Looping image -> data -> image -> data doesn't usually result in equal data or equal images as some config
         // data gets lost, but at least we can check pixel size.
-        XCTAssertEqual(image?.size, XXImage.sampleImage.size)
-    }
-
-    // If the local data is bad we recover by grabbing remote again.
-    func testLocalDataIsBad() async throws {
-        let imageCache = Self.buildImageCache()
-
-        let localReadExpectation = expectLocalRead(imageCache: imageCache, returning: Self.badImageData)
-
-        let inMemoryReadExpectation = expectNoInMemory(imageCache: imageCache)
-
-        do {
-            _ = try await imageCache.cache.cachedValueWith(identifier: Self.dummyURL)
-            XCTFail("Exception expected, didn't happen.")
-        } catch is ImageConversionError {
-        } catch {
-            XCTFail("Unexpected exception of type \(type(of: error))")
-        }
-
-        await fulfillment(of: [localReadExpectation, inMemoryReadExpectation])
+        XCTAssertEqual(image.size, XXImage.sampleImage.size)
     }
 
     // If the remote data is bad we throw.
     func testRemoteDataIsBad() async throws {
-        let imageCache = Self.buildImageCache()
+        let networkSourceExpectation = expectation(description: "Network source was called as expected.")
+        let localStorageFetchExpectation = expectation(description: "Local storage fetch was called as expected.")
+        let inMemoryFetchExpectation = expectation(description: "In-memory storage fetch was called as expected.")
 
-        let networkExpectation = expectNetworkRead(imageCache: imageCache, returning: Self.badImageData)
-
-        let localReadExpectation = expectLocalRead(imageCache: imageCache)
-
-        let inMemoryReadExpectation = expectNoInMemory(imageCache: imageCache)
-
-        do {
-            _ = try await imageCache.cache.cachedValueWith(identifier: Self.dummyURL)
-            XCTFail("Exception expected, didn't happen.")
-        } catch {
-            XCTAssertTrue(error is ImageConversionError)
+        let imageCache = Self.buildImageCache { url in
+            networkSourceExpectation.fulfill()
+            XCTAssertEqual(url, Self.dummyURL)
+            return Self.badImageData
+        } localStorageFetch: { filePath in
+            localStorageFetchExpectation.fulfill()
+            XCTAssertEqual(filePath, .init(Self.dummyURL.lastPathComponent))
+            return nil
+        } inMemoryFetchValidation: { url, image in
+            inMemoryFetchExpectation.fulfill()
+            XCTAssertEqual(url, Self.dummyURL)
+            XCTAssertNil(image)
         }
 
-        await fulfillment(of: [localReadExpectation, inMemoryReadExpectation, networkExpectation])
+        do {
+            _ = try await imageCache.cachedValueWith(id: Self.dummyURL)
+            XCTFail("Exception expected, didn't happen.")
+        } catch is ImageConversionError {
+            // This block intentionally left blank. This is the error we expect.
+        } catch {
+            XCTFail("Unexpected error \(error)")
+        }
+
+        await fulfillment(of: [networkSourceExpectation, localStorageFetchExpectation, inMemoryFetchExpectation])
     }
 
     // Tests that retrying works if source is good the second time (no crap left behind on error).
     func testRemoteDataIsBadButRetryWorks() async throws {
-        let imageCache = Self.buildImageCache()
-        let networkExpectation = expectNetworkRead(imageCache: imageCache, returning: Self.badImageData)
-        networkExpectation.expectedFulfillmentCount = 2
+        let networkSourceExpectation = expectation(description: "Network source was called as expected.")
+        networkSourceExpectation.expectedFulfillmentCount = 2
+        let localStorageFetchExpectation = expectation(description: "Local storage fetch was called as expected.")
+        localStorageFetchExpectation.expectedFulfillmentCount = 2
+        let localStorageStoreExpectation = expectation(description: "Local storage store was called as expected.")
+        let inMemoryFetchExpectation = expectation(description: "In-memory storage fetch was called as expected.")
+        inMemoryFetchExpectation.expectedFulfillmentCount = 2
+        let inMemoryStoreExpectation = expectation(description: "In-memory storage store was called as expected.")
 
-        let localReadExpectation = expectLocalRead(imageCache: imageCache)
-        localReadExpectation.expectedFulfillmentCount = 2 // We're going to go through this twice.
-
-        let inMemoryReadExpectation = expectNoInMemory(imageCache: imageCache)
-        inMemoryReadExpectation.expectedFulfillmentCount = 2 // We're going to go through this twice.
-
-        do {
-            _ = try await imageCache.cache.cachedValueWith(identifier: Self.dummyURL)
-            XCTFail("Exception expected, didn't happen.")
-        } catch {
-            XCTAssertTrue(error is ImageConversionError)
-        }
-
-        _ = expectNetworkRead(imageCache: imageCache, returning: XXImage.sampleImageData, existing: networkExpectation)
-
-        let localWriteExpectation = expectLocalWrite(imageCache: imageCache)
-
-        let inMemoryWriteExpectation = expectInMemoryWrite(imageCache: imageCache)
-
-        let image = try await imageCache.cache.cachedValueWith(identifier: Self.dummyURL)
-
-        await fulfillment(
-            of: [
-                localReadExpectation,
-                inMemoryReadExpectation,
-                networkExpectation,
-                localWriteExpectation,
-                inMemoryWriteExpectation
-            ],
-            timeout: 1.0
-        )
-
-        // Looping image -> data -> image -> data doesn't usually result in equal data or equal images as some config
-        // data gets lost, but at least we can check pixel size.
-        XCTAssertEqual(image?.size, XXImage.sampleImage.size)
-    }
-
-    // Tests that retrying works if local data is corrupted and we inivalidate it.
-    func testLocalDataIsBadButCleanupAndRetryWorks() async throws {
-        let imageCache = Self.buildImageCache()
-        let localBadReadExpectation = expectLocalRead(imageCache: imageCache, returning: Self.badImageData)
-
-        let inMemoryReadExpectation = expectNoInMemory(imageCache: imageCache)
-        inMemoryReadExpectation.expectedFulfillmentCount = 2 // We're going to go through this twice.
-
-        do {
-            _ = try await imageCache.cache.cachedValueWith(identifier: Self.dummyURL)
-            XCTFail("Exception expected, didn't happen.")
-        } catch {
-            XCTAssertTrue(error is ImageConversionError)
-        }
-
-        await fulfillment(of: [localBadReadExpectation]) // inMemoryReadExpectation will get more fulfillment later.
-
-        let inMemoryInvalidation = expectation(description: "Invalidating in memory storage")
-        imageCache.inMemoryStorage.removeValueForOverride = { url in
-            inMemoryInvalidation.fulfill()
+        var firstPass = true
+        let imageCache = Self.buildImageCache { url in
+            networkSourceExpectation.fulfill()
             XCTAssertEqual(url, Self.dummyURL)
+            if firstPass {
+                firstPass = false
+                return Self.badImageData
+            } else {
+                return XXImage.sampleImageData
+            }
+        } localStorageFetch: { filePath in
+            localStorageFetchExpectation.fulfill()
+            XCTAssertEqual(filePath, .init(Self.dummyURL.lastPathComponent))
+            return nil
+        } localStorageStore: { filePath, data in
+            localStorageStoreExpectation.fulfill()
+            XCTAssertEqual(data, XXImage.sampleImageData)
+            XCTAssertEqual(filePath, .init(Self.dummyURL.lastPathComponent))
+        } inMemoryFetchValidation: { url, image in
+            inMemoryFetchExpectation.fulfill()
+            XCTAssertEqual(url, Self.dummyURL)
+            XCTAssertNil(image)
+        } inMemoryStoreValidation: { url, image in
+            inMemoryStoreExpectation.fulfill()
+            XCTAssertEqual(url, Self.dummyURL)
+            XCTAssertEqual(image.size, XXImage.sampleImage.size)
         }
 
-        let localInvalidation = expectation(description: "Invalidating local storage")
-        imageCache.localStorage.removeValueForOverride = { fileName in
-            localInvalidation.fulfill()
-            XCTAssertEqual(fileName, Self.dummyURL.lastPathComponent)
+        do {
+            _ = try await imageCache.cachedValueWith(id: Self.dummyURL)
+            XCTFail("Exception expected, didn't happen.")
+        } catch is ImageConversionError {
+            // This block intentionally left blank. This is the error we expect.
+        } catch {
+            XCTFail("Unexpected error \(error)")
         }
 
-        // Network invalidation shouldn't be called as it uses read-only storage.
-
-        try await imageCache.cache.invalidateCachedValueFor(identifier: Self.dummyURL)
-
-        await fulfillment(of: [inMemoryInvalidation, localInvalidation], timeout: 1.0)
-
-        // XXXX
-
-        let networkExpectation = expectNetworkRead(imageCache: imageCache, returning: XXImage.sampleImageData)
-
-        let localGoodReadExpectation = expectLocalRead(imageCache: imageCache)
-
-        let localWriteExpectation = expectLocalWrite(imageCache: imageCache)
-
-        let inMemoryWriteExpectation = expectInMemoryWrite(imageCache: imageCache)
-
-        let image = try await imageCache.cache.cachedValueWith(identifier: Self.dummyURL)
+        // Try again, this one should work.
+        let image = try await imageCache.cachedValueWith(id: Self.dummyURL)
 
         await fulfillment(
             of: [
-                localGoodReadExpectation,
-                inMemoryReadExpectation,
-                networkExpectation,
-                localWriteExpectation,
-                inMemoryWriteExpectation
-            ],
-            timeout: 1.0
+                networkSourceExpectation,
+                localStorageFetchExpectation,
+                localStorageStoreExpectation,
+                inMemoryFetchExpectation,
+                inMemoryStoreExpectation
+            ]
         )
 
         // Looping image -> data -> image -> data doesn't usually result in equal data or equal images as some config
         // data gets lost, but at least we can check pixel size.
-        XCTAssertEqual(image?.size, XXImage.sampleImage.size)
+        XCTAssertEqual(image.size, XXImage.sampleImage.size)
     }
 }
