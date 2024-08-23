@@ -25,6 +25,8 @@ jobs:
         uses: actions/checkout@v4
       - name: Select Xcode Version
         run: sudo xcode-select --switch ${{ vars.TOOLPATH }}
+      - name: Install Linter
+        run: brew install swiftlint
       - name: Run Linter
         run: swiftlint Sources Tests --quiet 
   build-and-test-package:
