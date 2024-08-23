@@ -14,5 +14,4 @@ public enum Cache {}
 
 extension Cache {
     static let logger = Logger(subsystem: "CacheLogging", category: "SwiftCache")
-
 }

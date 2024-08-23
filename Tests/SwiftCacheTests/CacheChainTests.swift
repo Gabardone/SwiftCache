@@ -21,7 +21,7 @@ final class CacheChainTests: XCTestCase {
      */
     private static func buildImageCache(
         preloadedWeakObjectStorage: WeakObjectStorage<URL, XXImage>? = nil,
-        source: @escaping (URL) async throws -> Data = { url in
+        source: @escaping (URL) async throws -> Data = { _ in
             XCTFail("Unexpected call to network source.")
             return badImageData
         },
@@ -53,7 +53,7 @@ final class CacheChainTests: XCTestCase {
                     // You're usually going to need a `mapID` to use a `LocalFileDataStorage`
                     FilePath(url.lastPathComponent)
                 }
-                .mapValue { (data, image) in
+                .mapValue { data, _ in
                     // We're only carrying the image for validation.
                     data
                 } fromStorage: { data in
@@ -61,7 +61,7 @@ final class CacheChainTests: XCTestCase {
                     data.flatMap { data in XXImage(data: data).map { (data, $0) } }
                 }
             )
-            .mapValue { (_, image) in
+            .mapValue { _, image in
                 // We no longer need the data after this.
                 image
             }

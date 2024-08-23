@@ -5,8 +5,8 @@
 //  Created by Óscar Morales Vivó on 8/22/24.
 //
 
-extension SyncStorage {
-    public func mapID<OtherID: Hashable>(_ transform: @escaping (OtherID) -> ID) -> some SyncStorage<OtherID, Value> {
+public extension SyncStorage {
+    func mapID<OtherID: Hashable>(_ transform: @escaping (OtherID) -> ID) -> some SyncStorage<OtherID, Value> {
         AnySyncStorage { id in
             valueFor(id: transform(id))
         } storeValueForID: { value, id in
@@ -14,7 +14,7 @@ extension SyncStorage {
         }
     }
 
-    public func mapValue<OtherValue>(
+    func mapValue<OtherValue>(
         toStorage: @escaping (OtherValue) -> Value,
         fromStorage: @escaping (Value?) -> OtherValue?
     ) -> some SyncStorage<ID, OtherValue> {
@@ -25,7 +25,7 @@ extension SyncStorage {
         }
     }
 
-    public func mapValue<OtherValue>(
+    func mapValue<OtherValue>(
         toStorage: @escaping (OtherValue) async -> Value,
         fromStorage: @escaping (Value?) async -> OtherValue?
     ) -> some AsyncStorage<ID, OtherValue> {
@@ -37,8 +37,8 @@ extension SyncStorage {
     }
 }
 
-extension AsyncStorage {
-    public func mapID<OtherID: Hashable>(_ transform: @escaping (OtherID) -> ID) -> some AsyncStorage<OtherID, Value> {
+public extension AsyncStorage {
+    func mapID<OtherID: Hashable>(_ transform: @escaping (OtherID) -> ID) -> some AsyncStorage<OtherID, Value> {
         AnyAsyncStorage { id in
             await valueFor(id: transform(id))
         } storeValueForID: { value, id in
@@ -46,18 +46,18 @@ extension AsyncStorage {
         }
     }
 
-    public func mapValue<OtherValue>(
+    func mapValue<OtherValue>(
         toStorage: @escaping (OtherValue) -> Value,
         fromStorage: @escaping (Value?) -> OtherValue?
     ) -> some AsyncStorage<ID, OtherValue> {
         AnyAsyncStorage { id in
-            fromStorage(await valueFor(id: id))
+            await fromStorage(valueFor(id: id))
         } storeValueForID: { value, id in
             await store(value: toStorage(value), id: id)
         }
     }
 
-    public func mapValue<OtherValue>(
+    func mapValue<OtherValue>(
         toStorage: @escaping (OtherValue) async -> Value,
         fromStorage: @escaping (Value?) async -> OtherValue?
     ) -> some AsyncStorage<ID, OtherValue> {

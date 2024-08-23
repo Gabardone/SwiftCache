@@ -28,8 +28,8 @@ private struct SyncStorageSyncCache<
     }
 }
 
-extension SyncCache {
-    public func storage<Storage: SyncStorage>(
+public extension SyncCache {
+    func storage<Storage: SyncStorage>(
         _ storage: Storage
     ) -> some SyncCache<ID, Value> where Storage.ID == ID, Storage.Value == Value {
         SyncStorageSyncCache(parent: self, storage: storage)
@@ -57,8 +57,8 @@ private struct AsyncStorageSyncCache<
     }
 }
 
-extension SyncCache {
-    public func storage<Storage: AsyncStorage>(
+public extension SyncCache {
+    func storage<Storage: AsyncStorage>(
         _ storage: Storage
     ) -> some AsyncCache<ID, Value> where Storage.ID == ID, Storage.Value == Value {
         AsyncStorageSyncCache(parent: self, storage: storage)
@@ -86,8 +86,8 @@ private struct SyncStorageThrowingSyncCache<
     }
 }
 
-extension ThrowingSyncCache {
-    public func storage<Storage: SyncStorage>(
+public extension ThrowingSyncCache {
+    func storage<Storage: SyncStorage>(
         _ storage: Storage
     ) -> some ThrowingSyncCache<ID, Value> where Storage.ID == ID, Storage.Value == Value {
         SyncStorageThrowingSyncCache(parent: self, storage: storage)
@@ -115,8 +115,8 @@ private struct AsyncStorageThrowingSyncCache<
     }
 }
 
-extension ThrowingSyncCache {
-    public func storage<Storage: AsyncStorage>(
+public extension ThrowingSyncCache {
+    func storage<Storage: AsyncStorage>(
         _ storage: Storage
     ) -> some ThrowingAsyncCache<ID, Value> where Storage.ID == ID, Storage.Value == Value {
         AsyncStorageThrowingSyncCache(parent: self, storage: storage)
@@ -144,8 +144,8 @@ private struct SyncStorageAsyncCache<
     }
 }
 
-extension AsyncCache {
-    public func storage<Storage: SyncStorage>(
+public extension AsyncCache {
+    func storage<Storage: SyncStorage>(
         _ storage: Storage
     ) -> some AsyncCache<ID, Value> where Storage.ID == ID, Storage.Value == Value {
         SyncStorageAsyncCache(parent: self, storage: storage)
@@ -173,8 +173,8 @@ private struct AsyncStorageAsyncCache<
     }
 }
 
-extension AsyncCache {
-    public func storage<Storage: AsyncStorage>(
+public extension AsyncCache {
+    func storage<Storage: AsyncStorage>(
         _ storage: Storage
     ) -> some AsyncCache<ID, Value> where Storage.ID == ID, Storage.Value == Value {
         AsyncStorageAsyncCache(parent: self, storage: storage)
@@ -202,8 +202,8 @@ private struct SyncStorageThrowingAsyncCache<
     }
 }
 
-extension ThrowingAsyncCache {
-    public func storage<Storage: SyncStorage>(
+public extension ThrowingAsyncCache {
+    func storage<Storage: SyncStorage>(
         _ storage: Storage
     ) -> some ThrowingAsyncCache<ID, Value> where Storage.ID == ID, Storage.Value == Value {
         SyncStorageThrowingAsyncCache(parent: self, storage: storage)
@@ -231,8 +231,8 @@ private struct AsyncStorageThrowingAsyncCache<
     }
 }
 
-extension ThrowingAsyncCache {
-    public func storage<Storage: AsyncStorage>(
+public extension ThrowingAsyncCache {
+    func storage<Storage: AsyncStorage>(
         _ storage: Storage
     ) -> some ThrowingAsyncCache<ID, Value> where Storage.ID == ID, Storage.Value == Value {
         AsyncStorageThrowingAsyncCache(parent: self, storage: storage)

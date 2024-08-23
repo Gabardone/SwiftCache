@@ -24,12 +24,12 @@ extension AnySyncCache: SyncCache {
 
     public func eraseToAnyCache() -> AnySyncCache<ID, Value> {
         // Let's not build another wrapper for the wrapper.
-        return self
+        self
     }
 }
 
-extension SyncCache {
-    public func eraseToAnyCache() -> AnySyncCache<ID, Value> {
+public extension SyncCache {
+    func eraseToAnyCache() -> AnySyncCache<ID, Value> {
         AnySyncCache { id in
             cachedValueWith(id: id)
         }
@@ -53,12 +53,12 @@ extension AnyThrowingSyncCache: ThrowingSyncCache {
 
     public func eraseToAnyCache() -> AnyThrowingSyncCache<ID, Value> {
         // Let's not build another wrapper for the wrapper.
-        return self
+        self
     }
 }
 
-extension ThrowingSyncCache {
-    public func eraseToAnyCache() -> AnyThrowingSyncCache<ID, Value> {
+public extension ThrowingSyncCache {
+    func eraseToAnyCache() -> AnyThrowingSyncCache<ID, Value> {
         AnyThrowingSyncCache { id in
             try cachedValueWith(id: id)
         }
@@ -82,12 +82,12 @@ extension AnyAsyncCache: AsyncCache {
 
     public func eraseToAnyCache() -> AnyAsyncCache<ID, Value> {
         // Let's not build another wrapper for the wrapper.
-        return self
+        self
     }
 }
 
-extension AsyncCache {
-    public func eraseToAnyCache() -> AnyAsyncCache<ID, Value> {
+public extension AsyncCache {
+    func eraseToAnyCache() -> AnyAsyncCache<ID, Value> {
         AnyAsyncCache { id in
             await cachedValueWith(id: id)
         }
@@ -111,12 +111,12 @@ extension AnyThrowingAsyncCache: ThrowingAsyncCache {
 
     public func eraseToAnyCache() -> AnyThrowingAsyncCache<ID, Value> {
         // Let's not build another wrapper for the wrapper.
-        return self
+        self
     }
 }
 
-extension ThrowingAsyncCache {
-    public func eraseToAnyCache() -> AnyThrowingAsyncCache<ID, Value> {
+public extension ThrowingAsyncCache {
+    func eraseToAnyCache() -> AnyThrowingAsyncCache<ID, Value> {
         AnyThrowingAsyncCache { id in
             try await cachedValueWith(id: id)
         }

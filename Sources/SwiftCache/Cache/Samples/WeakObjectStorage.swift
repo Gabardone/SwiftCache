@@ -37,7 +37,7 @@ extension WeakObjectStorage: SyncStorage {
  detail.
  */
 private class KeyWrapper<ID: Hashable>: NSObject, NSCopying {
-    func copy(with zone: NSZone? = nil) -> Any {
+    func copy(with _: NSZone? = nil) -> Any {
         self
     }
 
@@ -53,7 +53,7 @@ private class KeyWrapper<ID: Hashable>: NSObject, NSCopying {
             return false
         }
 
-        return self.wrapping == otherWrapper.wrapping
+        return wrapping == otherWrapper.wrapping
     }
 
     // Because of `NSMapTable` quaint old ways we have to override the `NSObject` versions for hashing.

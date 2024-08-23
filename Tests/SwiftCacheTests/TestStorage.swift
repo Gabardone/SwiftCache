@@ -24,7 +24,7 @@ extension TestStorage: AsyncStorage {
     func valueFor(id: ID) async -> Value? {
         await valueForID(id)
     }
-    
+
     func store(value: Value, id: ID) async {
         await storeValueForID(id, value)
     }

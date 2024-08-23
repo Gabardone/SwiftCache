@@ -1,6 +1,6 @@
 //
-//  File.swift
-//  
+//  CoordinatedCache.swift
+//
 //
 //  Created by Óscar Morales Vivó on 8/18/24.
 //
@@ -40,8 +40,8 @@ extension CoordinatedSyncCache: AsyncCache {
     }
 }
 
-extension SyncCache {
-    public func coordinated() -> some AsyncCache<ID, Value> {
+public extension SyncCache {
+    func coordinated() -> some AsyncCache<ID, Value> {
         CoordinatedSyncCache(parent: self)
     }
 }
@@ -72,7 +72,7 @@ extension CoordinatedThrowingSyncCache: ThrowingAsyncCache {
                     self.taskManager.removeValue(forKey: id)
                 }
 
-                return try self.parent.cachedValueWith(id: id)
+                return try parent.cachedValueWith(id: id)
             }
 
             taskManager[id] = newTask
@@ -81,8 +81,8 @@ extension CoordinatedThrowingSyncCache: ThrowingAsyncCache {
     }
 }
 
-extension ThrowingSyncCache {
-    public func coordinated() -> some ThrowingAsyncCache<ID, Value> {
+public extension ThrowingSyncCache {
+    func coordinated() -> some ThrowingAsyncCache<ID, Value> {
         CoordinatedThrowingSyncCache(parent: self)
     }
 }
@@ -120,8 +120,8 @@ extension CoordinatedAsyncCache: AsyncCache {
     }
 }
 
-extension AsyncCache {
-    public func coordinated() -> some AsyncCache<ID, Value> {
+public extension AsyncCache {
+    func coordinated() -> some AsyncCache<ID, Value> {
         CoordinatedAsyncCache(parent: self)
     }
 }
@@ -152,7 +152,7 @@ extension CoordinatedThrowingAsyncCache: ThrowingAsyncCache {
                     self.taskManager.removeValue(forKey: id)
                 }
 
-                return try await self.parent.cachedValueWith(id: id)
+                return try await parent.cachedValueWith(id: id)
             }
 
             taskManager[id] = newTask
@@ -161,8 +161,8 @@ extension CoordinatedThrowingAsyncCache: ThrowingAsyncCache {
     }
 }
 
-extension ThrowingAsyncCache {
-    public func coordinated() -> some ThrowingAsyncCache<ID, Value> {
+public extension ThrowingAsyncCache {
+    func coordinated() -> some ThrowingAsyncCache<ID, Value> {
         CoordinatedThrowingAsyncCache(parent: self)
     }
 }
