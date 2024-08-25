@@ -8,7 +8,7 @@ let package = Package(
     platforms: [
         // Minimum deployment version currently set by `Logger` release version.
         .iOS(.v14),
-        .macOS(.v12),
+        .macOS(.v11),
         .macCatalyst(.v14),
         .tvOS(.v14),
         .visionOS(.v1),

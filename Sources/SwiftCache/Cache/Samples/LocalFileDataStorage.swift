@@ -8,6 +8,15 @@
 import Foundation
 import System
 
+/**
+ A simple storage type that stores data in a local cache folder in the local type system.
+
+ The storage is hardcoded to `ID == FilePath` and `Value == Data`. You will normally want to convert to/from your
+ cache's `ID` and `Value` using `mapID` and `mapValue` respectively.
+
+ Availability limited by `FilePath` API only being declared in later OS versions.
+ */
+@available(macOS 12.0, iOS 15.0, watchOS 8.0, tvOS 15.0, *)
 public struct LocalFileDataStorage {
     let storageDirectory: FilePath
 
@@ -23,10 +32,13 @@ public struct LocalFileDataStorage {
             """)
             return fileManager.temporaryDirectory
         }()
-        self.storageDirectory = FilePath(cacheDirectory.path).appending(storageIdentifier.components)
+        var storagePath = FilePath(cacheDirectory.path)
+        storagePath.append(storageIdentifier.components)
+        self.storageDirectory = storagePath
     }
 }
 
+@available(macOS 12.0, iOS 15.0, watchOS 8.0, tvOS 15.0, *)
 extension LocalFileDataStorage: SyncStorage {
     public func valueFor(id: FilePath) -> Data? {
         fileManager.contents(atPath: storageDirectory.appending(id.components).description)
