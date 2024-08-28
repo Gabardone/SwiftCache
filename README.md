@@ -108,33 +108,33 @@ again. It's still better in this case to validate before we get here (the step a
 accidentally end up storing bad data in the file system. If we only stored data and didn't validate when fetching from
 storage we would end up stuck with bad data an an exception every time it were requested.
 
-///swift
+```swift
 .mapValue { _, image in
     image
 }
-///
+```
 
 We're done with wrangling raw `Data` from now on, so we just filter it out and pass down the `UIImage`.
 
-///swift
+```swift
 .storage((WeakObjectStorage())
-///
+```
 
 A weak objects storage means we'll have instant access to any object that someone else has fetched before and is already
 using, so it's mostly "free". Other in-memory alternatives can be built with whatever cache invalidation approaches may
 work best. `NSCache` sounds good but is rarely what you actually want.
 
-///swift
+```swift
 .coordinated()
-///
+```
 
 You will always want to finish any `async` cache chain with this one. It guarantees that whatever other work has to
 happen deeper (above) will not be repeated if any other part of your app requests the same item while it's being worked
 on.
 
-///swift
+```swift
 .eraseToAnyCache()
-///
+```
 
 Using `AnyThrowingAsyncCache` as the return type makes for easy substitution in tests and less trouble dealing with
 the Swift type system overall.
