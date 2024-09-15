@@ -40,7 +40,7 @@ final class CacheChainTests: XCTestCase {
         }
     ) -> some ThrowingAsyncCache<URL, XXImage> {
         TestSource(cachedValueWithID: source)
-            .mapValue { data in
+            .mapValue { data, _ in
                 // We convert to image early so we validate that the data is good. We wouldn't want to store bad data.
                 guard let image = XXImage(data: data) else {
                     throw ImageConversionError()
@@ -56,14 +56,15 @@ final class CacheChainTests: XCTestCase {
                 .mapValue { data, _ in
                     // We're only carrying the image for validation.
                     data
-                } fromStorage: { data in
+                } fromStorage: { data, _ in
                     // It's ok to convert again since if we're here it means we don't have it in memory.
-                    data.flatMap { data in XXImage(data: data).map { (data, $0) } }
+                    XXImage(data: data).map { (data, $0) }
                 }
             )
-            .mapValue { _, image in
+            .mapValue { imageAndData, _ in
                 // We no longer need the data after this.
-                image
+                let (_, image) = imageAndData
+                return image
             }
             .storage((preloadedWeakObjectStorage ?? WeakObjectStorage())
                 .validated(fetchValidation: inMemoryFetchValidation, storeValidation: inMemoryStoreValidation)

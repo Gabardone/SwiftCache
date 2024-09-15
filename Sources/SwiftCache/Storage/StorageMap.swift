@@ -16,10 +16,12 @@ public extension SyncStorage {
 
     func mapValue<OtherValue>(
         toStorage: @escaping (OtherValue) -> Value,
-        fromStorage: @escaping (Value?) -> OtherValue?
+        fromStorage: @escaping (Value, ID) -> OtherValue?
     ) -> some SyncStorage<ID, OtherValue> {
         AnySyncStorage { id in
-            fromStorage(valueFor(id: id))
+            valueFor(id: id).flatMap { value in
+                fromStorage(value, id)
+            }
         } storeValueForID: { value, id in
             store(value: toStorage(value), id: id)
         }
@@ -27,10 +29,14 @@ public extension SyncStorage {
 
     func mapValue<OtherValue>(
         toStorage: @escaping (OtherValue) async -> Value,
-        fromStorage: @escaping (Value?) async -> OtherValue?
+        fromStorage: @escaping (Value, ID) async -> OtherValue?
     ) -> some AsyncStorage<ID, OtherValue> {
         AnyAsyncStorage { id in
-            await fromStorage(valueFor(id: id))
+            if let storedValue = valueFor(id: id) {
+                await fromStorage(storedValue, id)
+            } else {
+                nil
+            }
         } storeValueForID: { value, id in
             await store(value: toStorage(value), id: id)
         }
@@ -48,10 +54,12 @@ public extension AsyncStorage {
 
     func mapValue<OtherValue>(
         toStorage: @escaping (OtherValue) -> Value,
-        fromStorage: @escaping (Value?) -> OtherValue?
+        fromStorage: @escaping (Value, ID) -> OtherValue?
     ) -> some AsyncStorage<ID, OtherValue> {
         AnyAsyncStorage { id in
-            await fromStorage(valueFor(id: id))
+            await valueFor(id: id).flatMap { storedValue in
+                fromStorage(storedValue, id)
+            }
         } storeValueForID: { value, id in
             await store(value: toStorage(value), id: id)
         }
@@ -59,10 +67,14 @@ public extension AsyncStorage {
 
     func mapValue<OtherValue>(
         toStorage: @escaping (OtherValue) async -> Value,
-        fromStorage: @escaping (Value?) async -> OtherValue?
+        fromStorage: @escaping (Value, ID) async -> OtherValue?
     ) -> some AsyncStorage<ID, OtherValue> {
         AnyAsyncStorage { id in
-            await fromStorage(valueFor(id: id))
+            if let storedValue = await valueFor(id: id) {
+                await fromStorage(storedValue, id)
+            } else {
+                nil
+            }
         } storeValueForID: { value, id in
             await store(value: toStorage(value), id: id)
         }
