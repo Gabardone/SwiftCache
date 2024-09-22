@@ -18,11 +18,11 @@ import System
  */
 @available(macOS 12.0, iOS 15.0, watchOS 8.0, tvOS 15.0, *)
 public struct LocalFileDataStorage {
-    let storageDirectory: FilePath
+    private let storageDirectory: FilePath
 
-    let fileManager: FileManager
+    private let fileManager: FileManager
 
-    init(storageIdentifier: FilePath, fileManager: FileManager = .default) {
+    private init(storageIdentifier: FilePath, fileManager: FileManager = .default) {
         self.fileManager = fileManager
 
         // Calculate the storageDirecotry.

@@ -7,6 +7,12 @@
 
 import Foundation
 
+/**
+ Type-erased sync storage.
+
+ This wrapper value type can be (and is) used to build up adapters for actual storage types, and can also be used to
+ build mocks for testing.
+ */
 public struct AnySyncStorage<ID: Hashable, Value> {
     public init(
         valueForID: @escaping (ID) -> Value? = { _ in nil },
@@ -41,6 +47,12 @@ extension SyncStorage {
     }
 }
 
+/**
+ Type-erased async storage.
+
+ This wrapper value type can be (and is) used to build up adapters for actual storage types, and can also be used to
+ build mocks for testing.
+ */
 public struct AnyAsyncStorage<ID: Hashable, Value> {
     public init(
         valueForID: @escaping (ID) async -> Value? = { _ in nil },

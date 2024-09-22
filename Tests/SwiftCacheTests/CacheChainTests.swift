@@ -38,8 +38,8 @@ final class CacheChainTests: XCTestCase {
         inMemoryStoreValidation: @escaping (URL, XXImage) -> Void = { _, _ in
             XCTFail("Unexpected call to local storage store.")
         }
-    ) -> some ThrowingAsyncCache<URL, XXImage> {
-        TestSource(cachedValueWithID: source)
+    ) -> ThrowingAsyncCache<URL, XXImage> {
+        Cache.source(source)
             .mapValue { data, _ in
                 // We convert to image early so we validate that the data is good. We wouldn't want to store bad data.
                 guard let image = XXImage(data: data) else {
@@ -87,7 +87,7 @@ final class CacheChainTests: XCTestCase {
             }
         )
 
-        let image = try await imageCache.cachedValueWith(id: Self.dummyURL)
+        let image = try await imageCache.valueForID(Self.dummyURL)
 
         await fulfillment(of: [inMemoryFetchExpectation])
 
@@ -114,7 +114,7 @@ final class CacheChainTests: XCTestCase {
             XCTAssertEqual(value.size, XXImage.sampleImage.size)
         })
 
-        let image = try await imageCache.cachedValueWith(id: Self.dummyURL)
+        let image = try await imageCache.valueForID(Self.dummyURL)
 
         await fulfillment(of: [localStorageFetchExpectation, inMemoryFetchExpectation, inMemoryStoreExpectation])
 
@@ -153,7 +153,7 @@ final class CacheChainTests: XCTestCase {
             XCTAssertEqual(image.size, XXImage.sampleImage.size)
         }
 
-        let image = try await imageCache.cachedValueWith(id: Self.dummyURL)
+        let image = try await imageCache.valueForID(Self.dummyURL)
 
         await fulfillment(
             of: [
@@ -191,7 +191,7 @@ final class CacheChainTests: XCTestCase {
         }
 
         do {
-            _ = try await imageCache.cachedValueWith(id: Self.dummyURL)
+            _ = try await imageCache.valueForID(Self.dummyURL)
             XCTFail("Exception expected, didn't happen.")
         } catch is ImageConversionError {
             // This block intentionally left blank. This is the error we expect.
@@ -243,7 +243,7 @@ final class CacheChainTests: XCTestCase {
         }
 
         do {
-            _ = try await imageCache.cachedValueWith(id: Self.dummyURL)
+            _ = try await imageCache.valueForID(Self.dummyURL)
             XCTFail("Exception expected, didn't happen.")
         } catch is ImageConversionError {
             // This block intentionally left blank. This is the error we expect.
@@ -252,7 +252,7 @@ final class CacheChainTests: XCTestCase {
         }
 
         // Try again, this one should work.
-        let image = try await imageCache.cachedValueWith(id: Self.dummyURL)
+        let image = try await imageCache.valueForID(Self.dummyURL)
 
         await fulfillment(
             of: [
