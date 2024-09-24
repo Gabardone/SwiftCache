@@ -20,15 +20,4 @@ extension ThrowingAsyncCache {
             return try result.get()
         }
     }
-
-    /// Use this one if you want to get a reference to the `TestCache` for later tweaking.
-//    func validated(
-//        validator: inout TestCache<ID, Value, Self>?,
-//        idValidation: ((ID) -> Void)? = nil,
-//        valueValidation: ((Result<Value, Error>) -> Void)? = nil
-//    ) -> some ThrowingAsyncCache<ID, Value> {
-//        let testCache = TestCache(parent: self, idValidation: idValidation, valueValidation: valueValidation)
-//        validator = testCache
-//        return testCache
-//    }
 }

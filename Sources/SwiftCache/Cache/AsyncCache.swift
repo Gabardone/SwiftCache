@@ -15,7 +15,6 @@ public struct AsyncCache<ID: Hashable, Value> {
     public var valueForID: (ID) async -> Value
 }
 
-
 public extension Cache {
     static func source<ID: Hashable, Value>(_ source: @escaping (ID) async -> Value) -> AsyncCache<ID, Value> {
         AsyncCache(valueForID: source)
