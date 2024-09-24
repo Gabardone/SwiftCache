@@ -51,7 +51,6 @@ func buildImageCache() -> AnyThrowingAsyncCache<URL, UIImage> {
         }
         .storage((WeakObjectStorage())
         .coordinated() // Always finish an `async` cache chain with this one. You usually need only one at the end.
-        .eraseToAnyCache() // Using `AnyThrowingAsyncCache` as the return type makes for easy substitution in tests.
 }
 ```
 
@@ -132,13 +131,6 @@ You will always want to finish any `async` cache chain with this one. It guarant
 happen deeper (above) will not be repeated if any other part of your app requests the same item while it's being worked
 on.
 
-```swift
-.eraseToAnyCache()
-```
-
-Using `AnyThrowingAsyncCache` as the return type makes for easy substitution in tests and less trouble dealing with
-the Swift type system overall.
-
 ## But Wait, One More Example
 
 Ok now you're loading those images but dropping them full size on your UI is making your app performance sad. So you go
@@ -163,7 +155,6 @@ func buildThumbnailCache() -> AnyThrowingAsyncCache<URL, UIImage> {
         }
         .storage((WeakObjectStorage())
         .coordinated()
-        .eraseToAnyCache()
 }
 ```
 
