@@ -11,13 +11,13 @@ extension ThrowingAsyncCache {
     /// Use this one if you don't need to keep the reference to the `TestCache` around.
     func validated(
         idValidation: ((ID) -> Void)? = nil,
-        valueValidation: ((Result<Value, Error>) -> Void)? = nil
+        valueValidation: ((Value) -> Void)? = nil
     ) -> ThrowingAsyncCache {
         .init { id in
             idValidation?(id)
-            let result = await Result(asyncCatching: { try await valueForID(id) })
+            let result = try await valueForID(id)
             valueValidation?(result)
-            return try result.get()
+            return result
         }
     }
 }
