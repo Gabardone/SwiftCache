@@ -17,7 +17,7 @@ public struct ThrowingAsyncCache<ID: Hashable, Value> {
     public var valueForID: (ID) async throws -> Value
 }
 
-public extension Cache {
+public extension ResourceProvider {
     static func source<ID: Hashable, Value>(
         _ source: @escaping (ID) async throws -> Value
     ) -> ThrowingAsyncCache<ID, Value> {

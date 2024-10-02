@@ -7,7 +7,7 @@
 
 import Foundation
 
-public extension Cache {
+public extension ResourceProvider {
     /**
      A simple implementation of a network based cache source that returns the data at the given `URL`.
 

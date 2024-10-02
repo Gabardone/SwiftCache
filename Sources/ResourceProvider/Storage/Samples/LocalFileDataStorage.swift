@@ -27,7 +27,7 @@ public struct LocalFileDataStorage {
 
         // Calculate the storageDirecotry.
         let cacheDirectory = fileManager.urls(for: .cachesDirectory, in: .userDomainMask).first ?? {
-            Cache.logger.warning("""
+            ResourceProvider.logger.warning("""
             User cache directory not found, using temporary directory for local file data storage
             """)
             return fileManager.temporaryDirectory

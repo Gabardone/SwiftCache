@@ -5,7 +5,7 @@
 //  Created by Óscar Morales Vivó on 4/11/23.
 //
 
-import SwiftCache
+import ResourceProvider
 import System
 import XCTest
 
@@ -39,7 +39,7 @@ final class CacheChainTests: XCTestCase {
             XCTFail("Unexpected call to local storage store.")
         }
     ) -> ThrowingAsyncCache<URL, XXImage> {
-        Cache.source(source)
+        ResourceProvider.source(source)
             .mapValue { data, _ in
                 // We convert to image early so we validate that the data is good. We wouldn't want to store bad data.
                 guard let image = XXImage(data: data) else {

@@ -4,7 +4,7 @@
 import PackageDescription
 
 let package = Package(
-    name: "SwiftCache",
+    name: "swift-resource-provider",
     platforms: [
         // Minimum deployment version currently set by `Logger` release version.
         .iOS(.v14),
@@ -16,17 +16,17 @@ let package = Package(
     ],
     products: [
         .library(
-            name: "SwiftCache",
-            targets: ["SwiftCache"]
+            name: "ResourceProvider",
+            targets: ["ResourceProvider"]
         )
     ],
     targets: [
         .target(
-            name: "SwiftCache"
+            name: "ResourceProvider"
         ),
         .testTarget(
-            name: "SwiftCacheTests",
-            dependencies: ["SwiftCache"]
+            name: "ResourceProviderTests",
+            dependencies: ["ResourceProvider"]
         )
     ]
 )

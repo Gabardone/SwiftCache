@@ -5,7 +5,7 @@
 //  Created by Óscar Morales Vivó on 8/22/24.
 //
 
-import SwiftCache
+import ResourceProvider
 
 /// Unlike `AnyStorage`, it's a reference type and allows for swapping around the functionality so it can be more
 /// readily used in tests.

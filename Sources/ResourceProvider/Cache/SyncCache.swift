@@ -27,7 +27,7 @@ public struct SyncCache<ID: Hashable, Value> {
     public var valueForID: (ID) -> Value
 }
 
-public extension Cache {
+public extension ResourceProvider {
     static func source<ID: Hashable, Value>(_ source: @escaping (ID) -> Value) -> SyncCache<ID, Value> {
         SyncCache(valueForID: source)
     }

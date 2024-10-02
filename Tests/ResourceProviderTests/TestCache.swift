@@ -5,7 +5,7 @@
 //  Created by Óscar Morales Vivó on 8/22/24.
 //
 
-@testable import SwiftCache
+@testable import ResourceProvider
 
 extension ThrowingAsyncCache {
     /// Use this one if you don't need to keep the reference to the `TestCache` around.
