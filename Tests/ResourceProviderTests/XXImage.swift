@@ -1,6 +1,6 @@
 //
 //  XXImage.swift
-//
+//  swift-resource-provider
 //
 //  Created by Óscar Morales Vivó on 1/28/24.
 //

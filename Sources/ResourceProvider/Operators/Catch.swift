@@ -1,6 +1,6 @@
 //
-//  CacheCatch.swift
-//  SwiftCache
+//  Catch.swift
+//  swift-resource-provider
 //
 //  Created by Óscar Morales Vivó on 9/23/24.
 //

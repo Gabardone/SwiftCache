@@ -1,6 +1,6 @@
 //
 //  AnyStorage.swift
-//  SwiftCache
+//  swift-resource-provider
 //
 //  Created by Óscar Morales Vivó on 4/11/23.
 //

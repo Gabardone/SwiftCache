@@ -1,6 +1,6 @@
 //
 //  ThrowingSyncResourceProvider.swift
-//  SwiftCache
+//  swift-resource-provider
 //
 //  Created by Óscar Morales Vivó on 9/21/24.
 //

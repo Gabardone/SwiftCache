@@ -1,6 +1,6 @@
 //
 //  ResourceProvider.swift
-//
+//  swift-resource-provider
 //
 //  Created by Óscar Morales Vivó on 4/23/23.
 //

@@ -1,6 +1,6 @@
 //
-//  CacheInterject.swift
-//  SwiftCache
+//  Interject.swift
+//  swift-resource-provider
 //
 //  Created by Óscar Morales Vivó on 9/23/24.
 //
