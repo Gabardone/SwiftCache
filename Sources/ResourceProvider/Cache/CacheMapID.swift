@@ -7,32 +7,36 @@
 
 import Foundation
 
-public extension SyncCache {
-    func mapID<OtherID: Hashable>(_ transform: @escaping (OtherID) -> ID) -> SyncCache<OtherID, Value> {
+public extension SyncResourceProvider {
+    func mapID<OtherID: Hashable>(_ transform: @escaping (OtherID) -> ID) -> SyncResourceProvider<OtherID, Value> {
         .init { otherID in
             valueForID(transform(otherID))
         }
     }
 }
 
-public extension ThrowingSyncCache {
-    func mapID<OtherID: Hashable>(_ transform: @escaping (OtherID) -> ID) -> ThrowingSyncCache<OtherID, Value> {
+public extension ThrowingSyncResourceProvider {
+    func mapID<OtherID: Hashable>(
+        _ transform: @escaping (OtherID) -> ID
+    ) -> ThrowingSyncResourceProvider<OtherID, Value> {
         .init { otherID in
             try valueForID(transform(otherID))
         }
     }
 }
 
-public extension AsyncCache {
-    func mapID<OtherID: Hashable>(_ transform: @escaping (OtherID) -> ID) -> AsyncCache<OtherID, Value> {
+public extension AsyncResourceProvider {
+    func mapID<OtherID: Hashable>(_ transform: @escaping (OtherID) -> ID) -> AsyncResourceProvider<OtherID, Value> {
         .init { otherID in
             await valueForID(transform(otherID))
         }
     }
 }
 
-public extension ThrowingAsyncCache {
-    func mapID<OtherID: Hashable>(_ transform: @escaping (OtherID) -> ID) -> ThrowingAsyncCache<OtherID, Value> {
+public extension ThrowingAsyncResourceProvider {
+    func mapID<OtherID: Hashable>(
+        _ transform: @escaping (OtherID) -> ID
+    ) -> ThrowingAsyncResourceProvider<OtherID, Value> {
         .init { otherID in
             try await valueForID(transform(otherID))
         }

@@ -7,8 +7,8 @@
 
 import Foundation
 
-public extension SyncCache {
-    func storage(_ storage: some SyncStorage<ID, Value>) -> SyncCache {
+public extension SyncResourceProvider {
+    func storage(_ storage: some SyncStorage<ID, Value>) -> SyncResourceProvider {
         sideEffect { value, id in
             storage.store(value: value, id: id)
         }
@@ -17,7 +17,7 @@ public extension SyncCache {
         }
     }
 
-    func storage(_ storage: some AsyncStorage<ID, Value>) -> AsyncCache<ID, Value> {
+    func storage(_ storage: some AsyncStorage<ID, Value>) -> AsyncResourceProvider<ID, Value> {
         sideEffect { value, id in
             await storage.store(value: value, id: id)
         }
@@ -27,8 +27,8 @@ public extension SyncCache {
     }
 }
 
-public extension ThrowingSyncCache {
-    func storage(_ storage: some SyncStorage<ID, Value>) -> ThrowingSyncCache {
+public extension ThrowingSyncResourceProvider {
+    func storage(_ storage: some SyncStorage<ID, Value>) -> ThrowingSyncResourceProvider {
         sideEffect { value, id in
             storage.store(value: value, id: id)
         }
@@ -37,7 +37,7 @@ public extension ThrowingSyncCache {
         }
     }
 
-    func storage(_ storage: some AsyncStorage<ID, Value>) -> ThrowingAsyncCache<ID, Value> {
+    func storage(_ storage: some AsyncStorage<ID, Value>) -> ThrowingAsyncResourceProvider<ID, Value> {
         sideEffect { value, id in
             await storage.store(value: value, id: id)
         }
@@ -47,8 +47,8 @@ public extension ThrowingSyncCache {
     }
 }
 
-public extension AsyncCache {
-    func storage(_ storage: some SyncStorage<ID, Value>) -> AsyncCache {
+public extension AsyncResourceProvider {
+    func storage(_ storage: some SyncStorage<ID, Value>) -> AsyncResourceProvider {
         sideEffect { value, id in
             storage.store(value: value, id: id)
         }
@@ -57,7 +57,7 @@ public extension AsyncCache {
         }
     }
 
-    func storage(_ storage: some AsyncStorage<ID, Value>) -> AsyncCache {
+    func storage(_ storage: some AsyncStorage<ID, Value>) -> AsyncResourceProvider {
         sideEffect { value, id in
             await storage.store(value: value, id: id)
         }
@@ -67,8 +67,8 @@ public extension AsyncCache {
     }
 }
 
-public extension ThrowingAsyncCache {
-    func storage(_ storage: some SyncStorage<ID, Value>) -> ThrowingAsyncCache {
+public extension ThrowingAsyncResourceProvider {
+    func storage(_ storage: some SyncStorage<ID, Value>) -> ThrowingAsyncResourceProvider {
         sideEffect { value, id in
             storage.store(value: value, id: id)
         }
@@ -77,7 +77,7 @@ public extension ThrowingAsyncCache {
         }
     }
 
-    func storage(_ storage: some AsyncStorage<ID, Value>) -> ThrowingAsyncCache {
+    func storage(_ storage: some AsyncStorage<ID, Value>) -> ThrowingAsyncResourceProvider {
         sideEffect { value, id in
             await storage.store(value: value, id: id)
         }

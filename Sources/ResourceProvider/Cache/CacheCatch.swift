@@ -5,9 +5,9 @@
 //  Created by Óscar Morales Vivó on 9/23/24.
 //
 
-public extension ThrowingSyncCache {
-    func `catch`(_ catcher: @escaping (Error, ID) -> Value) -> SyncCache<ID, Value> {
-        SyncCache { id in
+public extension ThrowingSyncResourceProvider {
+    func `catch`(_ catcher: @escaping (Error, ID) -> Value) -> SyncResourceProvider<ID, Value> {
+        SyncResourceProvider { id in
             do {
                 return try valueForID(id)
             } catch {
@@ -16,7 +16,7 @@ public extension ThrowingSyncCache {
         }
     }
 
-    func `catch`(_ catcher: @escaping (Error, ID) throws -> Value) -> ThrowingSyncCache {
+    func `catch`(_ catcher: @escaping (Error, ID) throws -> Value) -> ThrowingSyncResourceProvider {
         .init { id in
             do {
                 return try valueForID(id)
@@ -26,7 +26,7 @@ public extension ThrowingSyncCache {
         }
     }
 
-    func `catch`(_ catcher: @escaping (Error, ID) async -> Value) -> AsyncCache<ID, Value> {
+    func `catch`(_ catcher: @escaping (Error, ID) async -> Value) -> AsyncResourceProvider<ID, Value> {
         .init { id in
             do {
                 return try valueForID(id)
@@ -36,7 +36,7 @@ public extension ThrowingSyncCache {
         }
     }
 
-    func `catch`(_ catcher: @escaping (Error, ID) async throws -> Value) -> ThrowingAsyncCache<ID, Value> {
+    func `catch`(_ catcher: @escaping (Error, ID) async throws -> Value) -> ThrowingAsyncResourceProvider<ID, Value> {
         .init { id in
             do {
                 return try valueForID(id)
@@ -47,8 +47,8 @@ public extension ThrowingSyncCache {
     }
 }
 
-public extension ThrowingAsyncCache {
-    func `catch`(_ catcher: @escaping (Error, ID) -> Value) -> AsyncCache<ID, Value> {
+public extension ThrowingAsyncResourceProvider {
+    func `catch`(_ catcher: @escaping (Error, ID) -> Value) -> AsyncResourceProvider<ID, Value> {
         .init { id in
             do {
                 return try await valueForID(id)
@@ -58,7 +58,7 @@ public extension ThrowingAsyncCache {
         }
     }
 
-    func `catch`(_ catcher: @escaping (Error, ID) throws -> Value) -> ThrowingAsyncCache {
+    func `catch`(_ catcher: @escaping (Error, ID) throws -> Value) -> ThrowingAsyncResourceProvider {
         .init { id in
             do {
                 return try await valueForID(id)
@@ -68,7 +68,7 @@ public extension ThrowingAsyncCache {
         }
     }
 
-    func `catch`(_ catcher: @escaping (Error, ID) async -> Value) -> AsyncCache<ID, Value> {
+    func `catch`(_ catcher: @escaping (Error, ID) async -> Value) -> AsyncResourceProvider<ID, Value> {
         .init { id in
             do {
                 return try await valueForID(id)
@@ -78,7 +78,7 @@ public extension ThrowingAsyncCache {
         }
     }
 
-    func `catch`(_ catcher: @escaping (Error, ID) async throws -> Value) -> ThrowingAsyncCache {
+    func `catch`(_ catcher: @escaping (Error, ID) async throws -> Value) -> ThrowingAsyncResourceProvider {
         .init { id in
             do {
                 return try await valueForID(id)

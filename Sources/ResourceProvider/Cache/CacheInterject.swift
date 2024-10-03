@@ -5,60 +5,60 @@
 //  Created by Óscar Morales Vivó on 9/23/24.
 //
 
-public extension SyncCache {
-    func interject(_ interject: @escaping (ID) -> Value?) -> SyncCache {
+public extension SyncResourceProvider {
+    func interject(_ interject: @escaping (ID) -> Value?) -> SyncResourceProvider {
         .init { id in
             interject(id) ?? valueForID(id)
         }
     }
 
-    func interject(_ interject: @escaping (ID) throws -> Value?) -> ThrowingSyncCache<ID, Value> {
+    func interject(_ interject: @escaping (ID) throws -> Value?) -> ThrowingSyncResourceProvider<ID, Value> {
         .init { id in
             try interject(id) ?? valueForID(id)
         }
     }
 
-    func interject(_ interject: @escaping (ID) async -> Value?) -> AsyncCache<ID, Value> {
+    func interject(_ interject: @escaping (ID) async -> Value?) -> AsyncResourceProvider<ID, Value> {
         .init { id in
             await interject(id) ?? valueForID(id)
         }
     }
 
-    func interject(_ interject: @escaping (ID) async throws -> Value?) -> ThrowingAsyncCache<ID, Value> {
+    func interject(_ interject: @escaping (ID) async throws -> Value?) -> ThrowingAsyncResourceProvider<ID, Value> {
         .init { id in
             try await interject(id) ?? valueForID(id)
         }
     }
 }
 
-public extension ThrowingSyncCache {
-    func interject(_ interject: @escaping (ID) -> Value?) -> ThrowingSyncCache {
+public extension ThrowingSyncResourceProvider {
+    func interject(_ interject: @escaping (ID) -> Value?) -> ThrowingSyncResourceProvider {
         .init { id in
             try interject(id) ?? valueForID(id)
         }
     }
 
-    func interject(_ interject: @escaping (ID) throws -> Value?) -> ThrowingSyncCache {
+    func interject(_ interject: @escaping (ID) throws -> Value?) -> ThrowingSyncResourceProvider {
         .init { id in
             try interject(id) ?? valueForID(id)
         }
     }
 
-    func interject(_ interject: @escaping (ID) async -> Value?) -> ThrowingAsyncCache<ID, Value> {
+    func interject(_ interject: @escaping (ID) async -> Value?) -> ThrowingAsyncResourceProvider<ID, Value> {
         .init { id in
             try await interject(id) ?? valueForID(id)
         }
     }
 
-    func interject(_ interject: @escaping (ID) async throws -> Value?) -> ThrowingAsyncCache<ID, Value> {
+    func interject(_ interject: @escaping (ID) async throws -> Value?) -> ThrowingAsyncResourceProvider<ID, Value> {
         .init { id in
             try await interject(id) ?? valueForID(id)
         }
     }
 }
 
-public extension AsyncCache {
-    func interject(_ interject: @escaping (ID) -> Value?) -> AsyncCache {
+public extension AsyncResourceProvider {
+    func interject(_ interject: @escaping (ID) -> Value?) -> AsyncResourceProvider {
         .init { id in
             if let result = interject(id) {
                 result
@@ -68,7 +68,7 @@ public extension AsyncCache {
         }
     }
 
-    func interject(_ interject: @escaping (ID) throws -> Value?) -> ThrowingAsyncCache<ID, Value> {
+    func interject(_ interject: @escaping (ID) throws -> Value?) -> ThrowingAsyncResourceProvider<ID, Value> {
         .init { id in
             if let result = try interject(id) {
                 result
@@ -78,7 +78,7 @@ public extension AsyncCache {
         }
     }
 
-    func interject(_ interject: @escaping (ID) async -> Value?) -> AsyncCache {
+    func interject(_ interject: @escaping (ID) async -> Value?) -> AsyncResourceProvider {
         .init { id in
             if let result = await interject(id) {
                 result
@@ -88,7 +88,7 @@ public extension AsyncCache {
         }
     }
 
-    func interject(_ interject: @escaping (ID) async throws -> Value?) -> ThrowingAsyncCache<ID, Value> {
+    func interject(_ interject: @escaping (ID) async throws -> Value?) -> ThrowingAsyncResourceProvider<ID, Value> {
         .init { id in
             if let result = try await interject(id) {
                 result
@@ -99,8 +99,8 @@ public extension AsyncCache {
     }
 }
 
-public extension ThrowingAsyncCache {
-    func interject(_ interject: @escaping (ID) -> Value?) -> ThrowingAsyncCache {
+public extension ThrowingAsyncResourceProvider {
+    func interject(_ interject: @escaping (ID) -> Value?) -> ThrowingAsyncResourceProvider {
         .init { id in
             if let result = interject(id) {
                 result
@@ -110,7 +110,7 @@ public extension ThrowingAsyncCache {
         }
     }
 
-    func interject(_ interject: @escaping (ID) throws -> Value?) -> ThrowingAsyncCache {
+    func interject(_ interject: @escaping (ID) throws -> Value?) -> ThrowingAsyncResourceProvider {
         .init { id in
             if let result = try interject(id) {
                 result
@@ -120,7 +120,7 @@ public extension ThrowingAsyncCache {
         }
     }
 
-    func interject(_ interject: @escaping (ID) async -> Value?) -> ThrowingAsyncCache {
+    func interject(_ interject: @escaping (ID) async -> Value?) -> ThrowingAsyncResourceProvider {
         .init { id in
             if let result = await interject(id) {
                 result
@@ -130,7 +130,7 @@ public extension ThrowingAsyncCache {
         }
     }
 
-    func interject(_ interject: @escaping (ID) async throws -> Value?) -> ThrowingAsyncCache<ID, Value> {
+    func interject(_ interject: @escaping (ID) async throws -> Value?) -> ThrowingAsyncResourceProvider<ID, Value> {
         .init { id in
             if let result = try await interject(id) {
                 result

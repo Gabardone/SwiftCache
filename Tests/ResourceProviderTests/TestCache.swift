@@ -7,12 +7,12 @@
 
 @testable import ResourceProvider
 
-extension ThrowingAsyncCache {
+extension ThrowingAsyncResourceProvider {
     /// Use this one if you don't need to keep the reference to the `TestCache` around.
     func validated(
         idValidation: ((ID) -> Void)? = nil,
         valueValidation: ((Value) -> Void)? = nil
-    ) -> ThrowingAsyncCache {
+    ) -> ThrowingAsyncResourceProvider {
         .init { id in
             idValidation?(id)
             let result = try await valueForID(id)

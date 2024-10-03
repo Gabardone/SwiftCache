@@ -38,7 +38,7 @@ final class CacheChainTests: XCTestCase {
         inMemoryStoreValidation: @escaping (URL, XXImage) -> Void = { _, _ in
             XCTFail("Unexpected call to local storage store.")
         }
-    ) -> ThrowingAsyncCache<URL, XXImage> {
+    ) -> ThrowingAsyncResourceProvider<URL, XXImage> {
         ResourceProvider.source(source)
             .mapValue { data, _ in
                 // We convert to image early so we validate that the data is good. We wouldn't want to store bad data.
