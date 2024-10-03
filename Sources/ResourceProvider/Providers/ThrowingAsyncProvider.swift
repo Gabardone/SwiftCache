@@ -1,11 +1,11 @@
 //
-//  ThrowingAsyncResourceProvider.swift
+//  ThrowingAsyncProvider.swift
 //  swift-resource-provider
 //
 //  Created by Óscar Morales Vivó on 9/21/24.
 //
 
-public struct ThrowingAsyncResourceProvider<ID: Hashable, Value> {
+public struct ThrowingAsyncProvider<ID: Hashable, Value> {
     /**
      Returns the cached value for the given value ID in the calling cache.
 
@@ -17,10 +17,10 @@ public struct ThrowingAsyncResourceProvider<ID: Hashable, Value> {
     public var valueForID: (ID) async throws -> Value
 }
 
-public extension ResourceProvider {
+public extension Provider {
     static func source<ID: Hashable, Value>(
         _ source: @escaping (ID) async throws -> Value
-    ) -> ThrowingAsyncResourceProvider<ID, Value> {
+    ) -> ThrowingAsyncProvider<ID, Value> {
         .init(valueForID: source)
     }
 }

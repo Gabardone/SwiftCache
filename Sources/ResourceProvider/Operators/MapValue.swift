@@ -7,10 +7,10 @@
 
 import Foundation
 
-public extension SyncResourceProvider {
+public extension SyncProvider {
     func mapValue<OtherValue>(
         _ transform: @escaping (Value, ID) -> OtherValue
-    ) -> SyncResourceProvider<ID, OtherValue> {
+    ) -> SyncProvider<ID, OtherValue> {
         .init { id in
             transform(valueForID(id), id)
         }
@@ -18,7 +18,7 @@ public extension SyncResourceProvider {
 
     func mapValue<OtherValue>(
         _ transform: @escaping (Value, ID) throws -> OtherValue
-    ) -> ThrowingSyncResourceProvider<ID, OtherValue> {
+    ) -> ThrowingSyncProvider<ID, OtherValue> {
         .init { id in
             try transform(valueForID(id), id)
         }
@@ -26,7 +26,7 @@ public extension SyncResourceProvider {
 
     func mapValue<OtherValue>(
         _ transform: @escaping (Value, ID) async -> OtherValue
-    ) -> AsyncResourceProvider<ID, OtherValue> {
+    ) -> AsyncProvider<ID, OtherValue> {
         .init { id in
             await transform(valueForID(id), id)
         }
@@ -34,17 +34,17 @@ public extension SyncResourceProvider {
 
     func mapValue<OtherValue>(
         _ transform: @escaping (Value, ID) async throws -> OtherValue
-    ) -> ThrowingAsyncResourceProvider<ID, OtherValue> {
+    ) -> ThrowingAsyncProvider<ID, OtherValue> {
         .init { id in
             try await transform(valueForID(id), id)
         }
     }
 }
 
-public extension ThrowingSyncResourceProvider {
+public extension ThrowingSyncProvider {
     func mapValue<OtherValue>(
         _ transform: @escaping (Value, ID) -> OtherValue
-    ) -> ThrowingSyncResourceProvider<ID, OtherValue> {
+    ) -> ThrowingSyncProvider<ID, OtherValue> {
         .init { id in
             try transform(valueForID(id), id)
         }
@@ -52,7 +52,7 @@ public extension ThrowingSyncResourceProvider {
 
     func mapValue<OtherValue>(
         _ transform: @escaping (Value, ID) throws -> OtherValue
-    ) -> ThrowingSyncResourceProvider<ID, OtherValue> {
+    ) -> ThrowingSyncProvider<ID, OtherValue> {
         .init { id in
             try transform(valueForID(id), id)
         }
@@ -60,7 +60,7 @@ public extension ThrowingSyncResourceProvider {
 
     func mapValue<OtherValue>(
         _ transform: @escaping (Value, ID) async -> OtherValue
-    ) -> ThrowingAsyncResourceProvider<ID, OtherValue> {
+    ) -> ThrowingAsyncProvider<ID, OtherValue> {
         .init { id in
             try await transform(valueForID(id), id)
         }
@@ -68,17 +68,17 @@ public extension ThrowingSyncResourceProvider {
 
     func mapValue<OtherValue>(
         _ transform: @escaping (Value, ID) async throws -> OtherValue
-    ) -> ThrowingAsyncResourceProvider<ID, OtherValue> {
+    ) -> ThrowingAsyncProvider<ID, OtherValue> {
         .init { id in
             try await transform(valueForID(id), id)
         }
     }
 }
 
-public extension AsyncResourceProvider {
+public extension AsyncProvider {
     func mapValue<OtherValue>(
         _ transform: @escaping (Value, ID) -> OtherValue
-    ) -> AsyncResourceProvider<ID, OtherValue> {
+    ) -> AsyncProvider<ID, OtherValue> {
         .init { id in
             await transform(valueForID(id), id)
         }
@@ -86,7 +86,7 @@ public extension AsyncResourceProvider {
 
     func mapValue<OtherValue>(
         _ transform: @escaping (Value, ID) throws -> OtherValue
-    ) -> ThrowingAsyncResourceProvider<ID, OtherValue> {
+    ) -> ThrowingAsyncProvider<ID, OtherValue> {
         .init { id in
             try await transform(valueForID(id), id)
         }
@@ -94,7 +94,7 @@ public extension AsyncResourceProvider {
 
     func mapValue<OtherValue>(
         _ transform: @escaping (Value, ID) async -> OtherValue
-    ) -> AsyncResourceProvider<ID, OtherValue> {
+    ) -> AsyncProvider<ID, OtherValue> {
         .init { id in
             await transform(valueForID(id), id)
         }
@@ -102,17 +102,17 @@ public extension AsyncResourceProvider {
 
     func mapValue<OtherValue>(
         _ transform: @escaping (Value, ID) async throws -> OtherValue
-    ) -> ThrowingAsyncResourceProvider<ID, OtherValue> {
+    ) -> ThrowingAsyncProvider<ID, OtherValue> {
         .init { id in
             try await transform(valueForID(id), id)
         }
     }
 }
 
-public extension ThrowingAsyncResourceProvider {
+public extension ThrowingAsyncProvider {
     func mapValue<OtherValue>(
         _ transform: @escaping (Value, ID) -> OtherValue
-    ) -> ThrowingAsyncResourceProvider<ID, OtherValue> {
+    ) -> ThrowingAsyncProvider<ID, OtherValue> {
         .init { id in
             try await transform(valueForID(id), id)
         }
@@ -120,7 +120,7 @@ public extension ThrowingAsyncResourceProvider {
 
     func mapValue<OtherValue>(
         _ transform: @escaping (Value, ID) throws -> OtherValue
-    ) -> ThrowingAsyncResourceProvider<ID, OtherValue> {
+    ) -> ThrowingAsyncProvider<ID, OtherValue> {
         .init { id in
             try await transform(valueForID(id), id)
         }
@@ -128,7 +128,7 @@ public extension ThrowingAsyncResourceProvider {
 
     func mapValue<OtherValue>(
         _ transform: @escaping (Value, ID) async -> OtherValue
-    ) -> ThrowingAsyncResourceProvider<ID, OtherValue> {
+    ) -> ThrowingAsyncProvider<ID, OtherValue> {
         .init { id in
             try await transform(valueForID(id), id)
         }
@@ -136,7 +136,7 @@ public extension ThrowingAsyncResourceProvider {
 
     func mapValue<OtherValue>(
         _ transform: @escaping (Value, ID) async throws -> OtherValue
-    ) -> ThrowingAsyncResourceProvider<ID, OtherValue> {
+    ) -> ThrowingAsyncProvider<ID, OtherValue> {
         .init { id in
             try await transform(valueForID(id), id)
         }

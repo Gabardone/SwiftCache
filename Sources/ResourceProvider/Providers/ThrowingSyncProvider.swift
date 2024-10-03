@@ -1,5 +1,5 @@
 //
-//  ThrowingSyncResourceProvider.swift
+//  ThrowingSyncProvider.swift
 //  swift-resource-provider
 //
 //  Created by Óscar Morales Vivó on 9/21/24.
@@ -15,7 +15,7 @@
 
  The type of values that the cache manages can be most anything.
  */
-public struct ThrowingSyncResourceProvider<ID: Hashable, Value> {
+public struct ThrowingSyncProvider<ID: Hashable, Value> {
     /**
      Returns the cached value for the given value ID in the calling cache.
 
@@ -27,10 +27,10 @@ public struct ThrowingSyncResourceProvider<ID: Hashable, Value> {
     public var valueForID: (ID) throws -> Value
 }
 
-public extension ResourceProvider {
+public extension Provider {
     static func source<ID: Hashable, Value>(
         _ source: @escaping (ID) throws -> Value
-    ) -> ThrowingSyncResourceProvider<ID, Value> {
-        ThrowingSyncResourceProvider(valueForID: source)
+    ) -> ThrowingSyncProvider<ID, Value> {
+        ThrowingSyncProvider(valueForID: source)
     }
 }

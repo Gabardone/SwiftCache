@@ -1,5 +1,5 @@
 //
-//  SyncResourceProvider.swift
+//  SyncProvider.swift
 //  swift-resource-provider
 //
 //  Created by Óscar Morales Vivó on 9/21/24.
@@ -17,18 +17,18 @@
 
  The type of values that the cache manages can be most anything.
  */
-public struct SyncResourceProvider<ID: Hashable, Value> {
+public struct SyncProvider<ID: Hashable, Value> {
     /**
      Returns the cached value for the given value ID in the calling cache. A sync cache is expected to always succeed
-     in producing a value, use `ThrowingSyncResourceProvider` if the operation may fail.
+     in producing a value, use `ThrowingSyncProvider` if the operation may fail.
      - Parameter ID: The cache ID for the resource.
      - Returns: The value for the given `ID`
      */
     public var valueForID: (ID) -> Value
 }
 
-public extension ResourceProvider {
-    static func source<ID: Hashable, Value>(_ source: @escaping (ID) -> Value) -> SyncResourceProvider<ID, Value> {
-        SyncResourceProvider(valueForID: source)
+public extension Provider {
+    static func source<ID: Hashable, Value>(_ source: @escaping (ID) -> Value) -> SyncProvider<ID, Value> {
+        SyncProvider(valueForID: source)
     }
 }

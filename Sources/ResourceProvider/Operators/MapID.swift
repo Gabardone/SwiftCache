@@ -7,36 +7,36 @@
 
 import Foundation
 
-public extension SyncResourceProvider {
-    func mapID<OtherID: Hashable>(_ transform: @escaping (OtherID) -> ID) -> SyncResourceProvider<OtherID, Value> {
+public extension SyncProvider {
+    func mapID<OtherID: Hashable>(_ transform: @escaping (OtherID) -> ID) -> SyncProvider<OtherID, Value> {
         .init { otherID in
             valueForID(transform(otherID))
         }
     }
 }
 
-public extension ThrowingSyncResourceProvider {
+public extension ThrowingSyncProvider {
     func mapID<OtherID: Hashable>(
         _ transform: @escaping (OtherID) -> ID
-    ) -> ThrowingSyncResourceProvider<OtherID, Value> {
+    ) -> ThrowingSyncProvider<OtherID, Value> {
         .init { otherID in
             try valueForID(transform(otherID))
         }
     }
 }
 
-public extension AsyncResourceProvider {
-    func mapID<OtherID: Hashable>(_ transform: @escaping (OtherID) -> ID) -> AsyncResourceProvider<OtherID, Value> {
+public extension AsyncProvider {
+    func mapID<OtherID: Hashable>(_ transform: @escaping (OtherID) -> ID) -> AsyncProvider<OtherID, Value> {
         .init { otherID in
             await valueForID(transform(otherID))
         }
     }
 }
 
-public extension ThrowingAsyncResourceProvider {
+public extension ThrowingAsyncProvider {
     func mapID<OtherID: Hashable>(
         _ transform: @escaping (OtherID) -> ID
-    ) -> ThrowingAsyncResourceProvider<OtherID, Value> {
+    ) -> ThrowingAsyncProvider<OtherID, Value> {
         .init { otherID in
             try await valueForID(transform(otherID))
         }

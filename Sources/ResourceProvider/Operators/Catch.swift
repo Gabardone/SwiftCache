@@ -5,9 +5,9 @@
 //  Created by Óscar Morales Vivó on 9/23/24.
 //
 
-public extension ThrowingSyncResourceProvider {
-    func `catch`(_ catcher: @escaping (Error, ID) -> Value) -> SyncResourceProvider<ID, Value> {
-        SyncResourceProvider { id in
+public extension ThrowingSyncProvider {
+    func `catch`(_ catcher: @escaping (Error, ID) -> Value) -> SyncProvider<ID, Value> {
+        SyncProvider { id in
             do {
                 return try valueForID(id)
             } catch {
@@ -16,7 +16,7 @@ public extension ThrowingSyncResourceProvider {
         }
     }
 
-    func `catch`(_ catcher: @escaping (Error, ID) throws -> Value) -> ThrowingSyncResourceProvider {
+    func `catch`(_ catcher: @escaping (Error, ID) throws -> Value) -> ThrowingSyncProvider {
         .init { id in
             do {
                 return try valueForID(id)
@@ -26,7 +26,7 @@ public extension ThrowingSyncResourceProvider {
         }
     }
 
-    func `catch`(_ catcher: @escaping (Error, ID) async -> Value) -> AsyncResourceProvider<ID, Value> {
+    func `catch`(_ catcher: @escaping (Error, ID) async -> Value) -> AsyncProvider<ID, Value> {
         .init { id in
             do {
                 return try valueForID(id)
@@ -36,7 +36,7 @@ public extension ThrowingSyncResourceProvider {
         }
     }
 
-    func `catch`(_ catcher: @escaping (Error, ID) async throws -> Value) -> ThrowingAsyncResourceProvider<ID, Value> {
+    func `catch`(_ catcher: @escaping (Error, ID) async throws -> Value) -> ThrowingAsyncProvider<ID, Value> {
         .init { id in
             do {
                 return try valueForID(id)
@@ -47,8 +47,8 @@ public extension ThrowingSyncResourceProvider {
     }
 }
 
-public extension ThrowingAsyncResourceProvider {
-    func `catch`(_ catcher: @escaping (Error, ID) -> Value) -> AsyncResourceProvider<ID, Value> {
+public extension ThrowingAsyncProvider {
+    func `catch`(_ catcher: @escaping (Error, ID) -> Value) -> AsyncProvider<ID, Value> {
         .init { id in
             do {
                 return try await valueForID(id)
@@ -58,7 +58,7 @@ public extension ThrowingAsyncResourceProvider {
         }
     }
 
-    func `catch`(_ catcher: @escaping (Error, ID) throws -> Value) -> ThrowingAsyncResourceProvider {
+    func `catch`(_ catcher: @escaping (Error, ID) throws -> Value) -> ThrowingAsyncProvider {
         .init { id in
             do {
                 return try await valueForID(id)
@@ -68,7 +68,7 @@ public extension ThrowingAsyncResourceProvider {
         }
     }
 
-    func `catch`(_ catcher: @escaping (Error, ID) async -> Value) -> AsyncResourceProvider<ID, Value> {
+    func `catch`(_ catcher: @escaping (Error, ID) async -> Value) -> AsyncProvider<ID, Value> {
         .init { id in
             do {
                 return try await valueForID(id)
@@ -78,7 +78,7 @@ public extension ThrowingAsyncResourceProvider {
         }
     }
 
-    func `catch`(_ catcher: @escaping (Error, ID) async throws -> Value) -> ThrowingAsyncResourceProvider {
+    func `catch`(_ catcher: @escaping (Error, ID) async throws -> Value) -> ThrowingAsyncProvider {
         .init { id in
             do {
                 return try await valueForID(id)

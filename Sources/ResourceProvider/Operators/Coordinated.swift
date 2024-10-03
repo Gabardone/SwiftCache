@@ -7,8 +7,8 @@
 
 import Foundation
 
-private actor SyncCacheCoordinator<ID: Hashable, Value> {
-    typealias Parent = SyncResourceProvider<ID, Value>
+private actor SyncProviderCoordinator<ID: Hashable, Value> {
+    typealias Parent = SyncProvider<ID, Value>
 
     init(parent: Parent) {
         self.parent = parent
@@ -32,9 +32,9 @@ private actor SyncCacheCoordinator<ID: Hashable, Value> {
     }
 }
 
-public extension SyncResourceProvider {
-    func coordinated() -> AsyncResourceProvider<ID, Value> {
-        let coordinator = SyncCacheCoordinator(parent: self)
+public extension SyncProvider {
+    func coordinated() -> AsyncProvider<ID, Value> {
+        let coordinator = SyncProviderCoordinator(parent: self)
 
         return .init { id in
             await coordinator.taskFor(id: id).value
@@ -42,8 +42,8 @@ public extension SyncResourceProvider {
     }
 }
 
-private actor ThrowingSyncCacheCoordinator<ID: Hashable, Value> {
-    typealias Parent = ThrowingSyncResourceProvider<ID, Value>
+private actor ThrowingSyncProviderCoordinator<ID: Hashable, Value> {
+    typealias Parent = ThrowingSyncProvider<ID, Value>
 
     init(parent: Parent) {
         self.parent = parent
@@ -69,9 +69,9 @@ private actor ThrowingSyncCacheCoordinator<ID: Hashable, Value> {
     }
 }
 
-public extension ThrowingSyncResourceProvider {
-    func coordinated() -> ThrowingAsyncResourceProvider<ID, Value> {
-        let coordinator = ThrowingSyncCacheCoordinator(parent: self)
+public extension ThrowingSyncProvider {
+    func coordinated() -> ThrowingAsyncProvider<ID, Value> {
+        let coordinator = ThrowingSyncProviderCoordinator(parent: self)
 
         return .init { id in
             try await coordinator.taskFor(id: id).value
@@ -79,8 +79,8 @@ public extension ThrowingSyncResourceProvider {
     }
 }
 
-private actor AsyncCacheCoordinator<ID: Hashable, Value> {
-    typealias Parent = AsyncResourceProvider<ID, Value>
+private actor AsyncProviderCoordinator<ID: Hashable, Value> {
+    typealias Parent = AsyncProvider<ID, Value>
 
     init(parent: Parent) {
         self.parent = parent
@@ -104,9 +104,9 @@ private actor AsyncCacheCoordinator<ID: Hashable, Value> {
     }
 }
 
-public extension AsyncResourceProvider {
-    func coordinated() -> AsyncResourceProvider {
-        let coordinator = AsyncCacheCoordinator(parent: self)
+public extension AsyncProvider {
+    func coordinated() -> AsyncProvider {
+        let coordinator = AsyncProviderCoordinator(parent: self)
 
         return .init { id in
             await coordinator.taskFor(id: id).value
@@ -114,8 +114,8 @@ public extension AsyncResourceProvider {
     }
 }
 
-private actor ThrowingAsyncCacheCoordinator<ID: Hashable, Value> {
-    typealias Parent = ThrowingAsyncResourceProvider<ID, Value>
+private actor ThrowingAsyncProviderCoordinator<ID: Hashable, Value> {
+    typealias Parent = ThrowingAsyncProvider<ID, Value>
 
     init(parent: Parent) {
         self.parent = parent
@@ -141,9 +141,9 @@ private actor ThrowingAsyncCacheCoordinator<ID: Hashable, Value> {
     }
 }
 
-public extension ThrowingAsyncResourceProvider {
-    func coordinated() -> ThrowingAsyncResourceProvider {
-        let coordinator = ThrowingAsyncCacheCoordinator(parent: self)
+public extension ThrowingAsyncProvider {
+    func coordinated() -> ThrowingAsyncProvider {
+        let coordinator = ThrowingAsyncProviderCoordinator(parent: self)
 
         return .init { id in
             try await coordinator.taskFor(id: id).value

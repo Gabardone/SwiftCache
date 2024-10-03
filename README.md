@@ -1,9 +1,13 @@
-# SwiftCache
+# swift-resource-provider
 
-A modular cache or data pipeline system.
+A modular resource fetching and management system.
 
-The API is loosely based on Combine/SwiftUI. It doesn't resolve caching logic complexity but helps organize it in a far
-more modular and testable way.
+This is like Combine, but for getting things instead of receiving them. It makes for an easy to understand, common
+abstraction of getting something repeatably based on a series of unique characteristics, as well as enabling more
+sophisticated workflows including but not limited to caching steps.
+
+As with many similar frameworks and language facilities, this doesn't make these complicated issues simple but it ought
+to help organize them in a far more modular and testable way.
 
 ## Example
 
@@ -23,12 +27,12 @@ backend workmates to send in some media metadata like the image size. But as for
 for the images you would be writing something like _this_:
 
 ```swift
-import SwiftCache
+import ResourceProvider
 
 struct ImageConversionError: Error {}
 
-func buildImageCache() -> AnyThrowingAsyncCache<URL, UIImage> {
-    Cache.networkDataSource()
+func buildImageProvider() -> ThrowingAsyncResourceProvider<URL, UIImage> {
+    ResourceProvider.networkDataSource()
         .mapValue { data in
             guard let image = UIImage(data: data) else {
                 throw ImageConversionError()
@@ -57,15 +61,16 @@ func buildImageCache() -> AnyThrowingAsyncCache<URL, UIImage> {
 Let's look at all of this step by step…
 
 ```swift
-Cache.networkDataSource()
+ResourceProvider.networkDataSource()
 ```
 
 Every cache needs a source, which is expected to always return a thing. If it can't, it ought to `throw`. If you are
 reasonably sure it will never fail (i.e. if you are generating the values in code based on some parameters so all the
-logic happens under your control) then you can use a non-throwing `Cache` type and simplify its use at the call site.
+logic happens under your control) then you can use a non-throwing `ResourceProvider` type and simplify its use at the
+call site.
 
-In this case we are using the simple `Cache.networkDataSource()` method that just returns a source that downloads the
-data from the given `URL`, used as its `ID`, and fails if it can't.
+In this case we are using the simple `ResourceProvider.networkDataSource()` method that just returns a source that
+downloads the data from the given `URL`, used as its `ID`, and fails (throws) if it can't.
 
 ```swift
 .mapValue { data in
@@ -141,11 +146,11 @@ to your friendly neighborhood backend engineer:
 "No"
 
 Your backend friends are too busy working on the CEOs latest flight of fancy: Uber, but for playing D&D. You're gonna
-have to do something about this yourself. Well here comes `SwiftCache` to save the day…:
+have to do something about this yourself. Well here comes `ResourceProvider` to save the day…:
 
 ```swift
-func buildThumbnailCache() -> AnyThrowingAsyncCache<URL, UIImage> {
-    buildImageCache()
+func buildThumbnailProvider() -> ThrowingAsyncResourceProvider<URL, UIImage> {
+    buildImageProvider()
         .mapValue { image in
             if image.isLargerThanThumbnail {
                 image.downscaled(size: thumbnailSize)
@@ -164,14 +169,14 @@ different storage policy may work better for this use case.
 
 ## Tips & Tricks
 
-- `SwiftCache` doesn't make complexity go away, but it helps manage it. You're still going to have to think things
-through and be careful with your caching design.
+- `ResourceProvider` doesn't make complexity go away, but it helps manage it. You're still going to have to think things
+through and be careful with your provider design.
 - Start with the dumbest setup you can get away with and increase the complexity of individual components as performance
 measurements indicate it will be the most impactful.
-- If your caching layer or storage may have issues on reentrancy an `actor` is your best friend. In the context of
-solving the problems that `SwiftCache` is meant to help with, order of execution of concurrent tasks shouldn't be one,
-which makes `actors` a perfect fit for shielding against reentrancy issues for these. And remember that the basic
+- When implementing providers or caches, if reentrancy may be an issue an `actor` is your best friend. In the context of
+solving the problems that `ResourceProvider` is meant to help with, order of execution of concurrent tasks is almost
+never one, which makes `actors` a perfect fit for shielding against reentrancy issues. And remember that the basic
 avoidance of repeated work for the same ID is already taken care of by `coordinated()`.
-- Bears repeating: always finish off an `AsyncCache` or `ThrowingAsyncCache` with `coordinated()`
-- The given components (`Cache.networkSource`, `LocalFileDataStorage` etc.) are purposefully the dumbest implementations
-that work. Feel free to copy/paste them and use more sophisticated logic if your use case warrants it.
+- Bears repeating: always finish off an `AsyncProvider` or `ThrowingAsyncProvider` with `coordinated()`
+- The given components (`Provider.networkSource`, `LocalFileDataCache` etc.) are purposefully the dumbest
+implementations that work. Feel free to copy/paste them and use more sophisticated logic if your use case warrants it.

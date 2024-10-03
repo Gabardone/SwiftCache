@@ -1,6 +1,6 @@
 //
-//  CacheChainTests.swift
-//  SwiftCacheTests
+//  ProviderChainTests.swift
+//  swift-resource-provider
 //
 //  Created by Óscar Morales Vivó on 4/11/23.
 //
@@ -9,7 +9,7 @@ import ResourceProvider
 import System
 import XCTest
 
-final class CacheChainTests: XCTestCase {
+final class ProviderChainTests: XCTestCase {
     private static let badImageData = Data(count: 16)
 
     private static let dummyURL = URL(string: "https://zombo.com/")!
@@ -19,7 +19,7 @@ final class CacheChainTests: XCTestCase {
     /**
      We're using a mock of a three-level cache (in-memory/local file storage/network fetch).
      */
-    private static func buildImageCache(
+    private static func buildImageProvider(
         preloadedWeakObjectStorage: WeakObjectStorage<URL, XXImage>? = nil,
         source: @escaping (URL) async throws -> Data = { _ in
             XCTFail("Unexpected call to network source.")
@@ -38,8 +38,8 @@ final class CacheChainTests: XCTestCase {
         inMemoryStoreValidation: @escaping (URL, XXImage) -> Void = { _, _ in
             XCTFail("Unexpected call to local storage store.")
         }
-    ) -> ThrowingAsyncResourceProvider<URL, XXImage> {
-        ResourceProvider.source(source)
+    ) -> ThrowingAsyncProvider<URL, XXImage> {
+        Provider.source(source)
             .mapValue { data, _ in
                 // We convert to image early so we validate that the data is good. We wouldn't want to store bad data.
                 guard let image = XXImage(data: data) else {
@@ -78,7 +78,7 @@ final class CacheChainTests: XCTestCase {
         inMemoryStorage.store(value: XXImage.sampleImage, id: Self.dummyURL)
         let inMemoryFetchExpectation = expectation(description: "In-memory storage fetch was called as expected.")
 
-        let imageCache = Self.buildImageCache(
+        let imageProvider = Self.buildImageProvider(
             preloadedWeakObjectStorage: inMemoryStorage,
             inMemoryFetchValidation: { id, value in
                 inMemoryFetchExpectation.fulfill()
@@ -87,7 +87,7 @@ final class CacheChainTests: XCTestCase {
             }
         )
 
-        let image = try await imageCache.valueForID(Self.dummyURL)
+        let image = try await imageProvider.valueForID(Self.dummyURL)
 
         await fulfillment(of: [inMemoryFetchExpectation])
 
@@ -100,7 +100,7 @@ final class CacheChainTests: XCTestCase {
         let inMemoryFetchExpectation = expectation(description: "In-memory storage fetch was called as expected.")
         let inMemoryStoreExpectation = expectation(description: "In-memory storage store was called as expected.")
 
-        let imageCache = Self.buildImageCache(localStorageFetch: { filePath in
+        let imageProvider = Self.buildImageProvider(localStorageFetch: { filePath in
             localStorageFetchExpectation.fulfill()
             XCTAssertEqual(filePath, .init(Self.dummyURL.lastPathComponent))
             return XXImage.sampleImageData
@@ -114,7 +114,7 @@ final class CacheChainTests: XCTestCase {
             XCTAssertEqual(value.size, XXImage.sampleImage.size)
         })
 
-        let image = try await imageCache.valueForID(Self.dummyURL)
+        let image = try await imageProvider.valueForID(Self.dummyURL)
 
         await fulfillment(of: [localStorageFetchExpectation, inMemoryFetchExpectation, inMemoryStoreExpectation])
 
@@ -131,7 +131,7 @@ final class CacheChainTests: XCTestCase {
         let inMemoryFetchExpectation = expectation(description: "In-memory storage fetch was called as expected.")
         let inMemoryStoreExpectation = expectation(description: "In-memory storage store was called as expected.")
 
-        let imageCache = Self.buildImageCache { url in
+        let imageProvider = Self.buildImageProvider { url in
             networkSourceExpectation.fulfill()
             XCTAssertEqual(url, Self.dummyURL)
             return XXImage.sampleImageData
@@ -153,7 +153,7 @@ final class CacheChainTests: XCTestCase {
             XCTAssertEqual(image.size, XXImage.sampleImage.size)
         }
 
-        let image = try await imageCache.valueForID(Self.dummyURL)
+        let image = try await imageProvider.valueForID(Self.dummyURL)
 
         await fulfillment(
             of: [
@@ -176,7 +176,7 @@ final class CacheChainTests: XCTestCase {
         let localStorageFetchExpectation = expectation(description: "Local storage fetch was called as expected.")
         let inMemoryFetchExpectation = expectation(description: "In-memory storage fetch was called as expected.")
 
-        let imageCache = Self.buildImageCache { url in
+        let imageProvider = Self.buildImageProvider { url in
             networkSourceExpectation.fulfill()
             XCTAssertEqual(url, Self.dummyURL)
             return Self.badImageData
@@ -191,7 +191,7 @@ final class CacheChainTests: XCTestCase {
         }
 
         do {
-            _ = try await imageCache.valueForID(Self.dummyURL)
+            _ = try await imageProvider.valueForID(Self.dummyURL)
             XCTFail("Exception expected, didn't happen.")
         } catch is ImageConversionError {
             // This block intentionally left blank. This is the error we expect.
@@ -215,7 +215,7 @@ final class CacheChainTests: XCTestCase {
         let inMemoryStoreExpectation = expectation(description: "In-memory storage store was called as expected.")
 
         var firstPass = true
-        let imageCache = Self.buildImageCache { url in
+        let imageProvider = Self.buildImageProvider { url in
             networkSourceExpectation.fulfill()
             XCTAssertEqual(url, Self.dummyURL)
             if firstPass {
@@ -243,7 +243,7 @@ final class CacheChainTests: XCTestCase {
         }
 
         do {
-            _ = try await imageCache.valueForID(Self.dummyURL)
+            _ = try await imageProvider.valueForID(Self.dummyURL)
             XCTFail("Exception expected, didn't happen.")
         } catch is ImageConversionError {
             // This block intentionally left blank. This is the error we expect.
@@ -252,7 +252,7 @@ final class CacheChainTests: XCTestCase {
         }
 
         // Try again, this one should work.
-        let image = try await imageCache.valueForID(Self.dummyURL)
+        let image = try await imageProvider.valueForID(Self.dummyURL)
 
         await fulfillment(
             of: [

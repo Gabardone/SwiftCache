@@ -7,7 +7,7 @@
 
 import Foundation
 
-public extension ResourceProvider {
+public extension Provider {
     /**
      A simple implementation of a network based cache source that returns the data at the given `URL`.
 
@@ -21,7 +21,7 @@ public extension ResourceProvider {
      - Make sure there's a `coordinated()` addition to the cache chain if you don't want the same `URL` to go to the
      network twice.
      */
-    static func networkDataSource(urlSession: URLSession = .shared) -> ThrowingAsyncResourceProvider<URL, Data> {
+    static func networkDataSource(urlSession: URLSession = .shared) -> ThrowingAsyncProvider<URL, Data> {
         source { url in
             try await urlSession.data(from: url).0
         }

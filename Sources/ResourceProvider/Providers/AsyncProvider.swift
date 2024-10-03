@@ -1,11 +1,11 @@
 //
-//  AsyncResourceProvider.swift
+//  AsyncProvider.swift
 //  swift-resource-provider
 //
 //  Created by Óscar Morales Vivó on 9/21/24.
 //
 
-public struct AsyncResourceProvider<ID: Hashable, Value> {
+public struct AsyncProvider<ID: Hashable, Value> {
     /**
      Returns, asynchronously, the cached value for the given value ID in the calling cache. A sync cache is expected to
      always succeed in producing a value, use `ThrowingAsyncResourceProvider` if the operation may fail.
@@ -15,10 +15,10 @@ public struct AsyncResourceProvider<ID: Hashable, Value> {
     public var valueForID: (ID) async -> Value
 }
 
-public extension ResourceProvider {
+public extension Provider {
     static func source<ID: Hashable, Value>(
         _ source: @escaping (ID) async -> Value
-    ) -> AsyncResourceProvider<ID, Value> {
-        AsyncResourceProvider(valueForID: source)
+    ) -> AsyncProvider<ID, Value> {
+        AsyncProvider(valueForID: source)
     }
 }

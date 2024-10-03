@@ -5,60 +5,60 @@
 //  Created by Óscar Morales Vivó on 9/23/24.
 //
 
-public extension SyncResourceProvider {
-    func interject(_ interject: @escaping (ID) -> Value?) -> SyncResourceProvider {
+public extension SyncProvider {
+    func interject(_ interject: @escaping (ID) -> Value?) -> SyncProvider {
         .init { id in
             interject(id) ?? valueForID(id)
         }
     }
 
-    func interject(_ interject: @escaping (ID) throws -> Value?) -> ThrowingSyncResourceProvider<ID, Value> {
+    func interject(_ interject: @escaping (ID) throws -> Value?) -> ThrowingSyncProvider<ID, Value> {
         .init { id in
             try interject(id) ?? valueForID(id)
         }
     }
 
-    func interject(_ interject: @escaping (ID) async -> Value?) -> AsyncResourceProvider<ID, Value> {
+    func interject(_ interject: @escaping (ID) async -> Value?) -> AsyncProvider<ID, Value> {
         .init { id in
             await interject(id) ?? valueForID(id)
         }
     }
 
-    func interject(_ interject: @escaping (ID) async throws -> Value?) -> ThrowingAsyncResourceProvider<ID, Value> {
+    func interject(_ interject: @escaping (ID) async throws -> Value?) -> ThrowingAsyncProvider<ID, Value> {
         .init { id in
             try await interject(id) ?? valueForID(id)
         }
     }
 }
 
-public extension ThrowingSyncResourceProvider {
-    func interject(_ interject: @escaping (ID) -> Value?) -> ThrowingSyncResourceProvider {
+public extension ThrowingSyncProvider {
+    func interject(_ interject: @escaping (ID) -> Value?) -> ThrowingSyncProvider {
         .init { id in
             try interject(id) ?? valueForID(id)
         }
     }
 
-    func interject(_ interject: @escaping (ID) throws -> Value?) -> ThrowingSyncResourceProvider {
+    func interject(_ interject: @escaping (ID) throws -> Value?) -> ThrowingSyncProvider {
         .init { id in
             try interject(id) ?? valueForID(id)
         }
     }
 
-    func interject(_ interject: @escaping (ID) async -> Value?) -> ThrowingAsyncResourceProvider<ID, Value> {
+    func interject(_ interject: @escaping (ID) async -> Value?) -> ThrowingAsyncProvider<ID, Value> {
         .init { id in
             try await interject(id) ?? valueForID(id)
         }
     }
 
-    func interject(_ interject: @escaping (ID) async throws -> Value?) -> ThrowingAsyncResourceProvider<ID, Value> {
+    func interject(_ interject: @escaping (ID) async throws -> Value?) -> ThrowingAsyncProvider<ID, Value> {
         .init { id in
             try await interject(id) ?? valueForID(id)
         }
     }
 }
 
-public extension AsyncResourceProvider {
-    func interject(_ interject: @escaping (ID) -> Value?) -> AsyncResourceProvider {
+public extension AsyncProvider {
+    func interject(_ interject: @escaping (ID) -> Value?) -> AsyncProvider {
         .init { id in
             if let result = interject(id) {
                 result
@@ -68,7 +68,7 @@ public extension AsyncResourceProvider {
         }
     }
 
-    func interject(_ interject: @escaping (ID) throws -> Value?) -> ThrowingAsyncResourceProvider<ID, Value> {
+    func interject(_ interject: @escaping (ID) throws -> Value?) -> ThrowingAsyncProvider<ID, Value> {
         .init { id in
             if let result = try interject(id) {
                 result
@@ -78,7 +78,7 @@ public extension AsyncResourceProvider {
         }
     }
 
-    func interject(_ interject: @escaping (ID) async -> Value?) -> AsyncResourceProvider {
+    func interject(_ interject: @escaping (ID) async -> Value?) -> AsyncProvider {
         .init { id in
             if let result = await interject(id) {
                 result
@@ -88,7 +88,7 @@ public extension AsyncResourceProvider {
         }
     }
 
-    func interject(_ interject: @escaping (ID) async throws -> Value?) -> ThrowingAsyncResourceProvider<ID, Value> {
+    func interject(_ interject: @escaping (ID) async throws -> Value?) -> ThrowingAsyncProvider<ID, Value> {
         .init { id in
             if let result = try await interject(id) {
                 result
@@ -99,8 +99,8 @@ public extension AsyncResourceProvider {
     }
 }
 
-public extension ThrowingAsyncResourceProvider {
-    func interject(_ interject: @escaping (ID) -> Value?) -> ThrowingAsyncResourceProvider {
+public extension ThrowingAsyncProvider {
+    func interject(_ interject: @escaping (ID) -> Value?) -> ThrowingAsyncProvider {
         .init { id in
             if let result = interject(id) {
                 result
@@ -110,7 +110,7 @@ public extension ThrowingAsyncResourceProvider {
         }
     }
 
-    func interject(_ interject: @escaping (ID) throws -> Value?) -> ThrowingAsyncResourceProvider {
+    func interject(_ interject: @escaping (ID) throws -> Value?) -> ThrowingAsyncProvider {
         .init { id in
             if let result = try interject(id) {
                 result
@@ -120,7 +120,7 @@ public extension ThrowingAsyncResourceProvider {
         }
     }
 
-    func interject(_ interject: @escaping (ID) async -> Value?) -> ThrowingAsyncResourceProvider {
+    func interject(_ interject: @escaping (ID) async -> Value?) -> ThrowingAsyncProvider {
         .init { id in
             if let result = await interject(id) {
                 result
@@ -130,7 +130,7 @@ public extension ThrowingAsyncResourceProvider {
         }
     }
 
-    func interject(_ interject: @escaping (ID) async throws -> Value?) -> ThrowingAsyncResourceProvider<ID, Value> {
+    func interject(_ interject: @escaping (ID) async throws -> Value?) -> ThrowingAsyncProvider<ID, Value> {
         .init { id in
             if let result = try await interject(id) {
                 result
