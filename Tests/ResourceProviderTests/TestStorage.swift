@@ -20,7 +20,7 @@ class TestStorage<ID: Hashable, Value> {
     }
 }
 
-extension TestStorage: AsyncStorage {
+extension TestStorage: AsyncCache {
     func valueFor(id: ID) async -> Value? {
         await valueForID(id)
     }
@@ -30,11 +30,11 @@ extension TestStorage: AsyncStorage {
     }
 }
 
-extension SyncStorage {
+extension SyncCache {
     func validated(
         fetchValidation: ((ID, Value?) -> Void)? = nil,
         storeValidation: ((ID, Value) -> Void)? = nil
-    ) -> some AsyncStorage<ID, Value> {
+    ) -> some AsyncCache<ID, Value> {
         AnyAsyncStorage { id in
             let result = valueFor(id: id)
             fetchValidation?(id, result)

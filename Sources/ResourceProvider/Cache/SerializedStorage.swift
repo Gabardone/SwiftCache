@@ -8,7 +8,7 @@
 private actor SerializedStorage<
     ID: Hashable,
     Value,
-    Serialized: SyncStorage
+    Serialized: SyncCache
 > where Serialized.ID == ID, Serialized.Value == Value {
     let serialized: Serialized
 
@@ -17,7 +17,7 @@ private actor SerializedStorage<
     }
 }
 
-extension SerializedStorage: AsyncStorage {
+extension SerializedStorage: AsyncCache {
     func valueFor(id: ID) -> Value? {
         serialized.valueFor(id: id)
     }
@@ -27,7 +27,7 @@ extension SerializedStorage: AsyncStorage {
     }
 }
 
-public extension SyncStorage {
+public extension SyncCache {
     /// Returns a wrapper for a sync storage that guarantees serialization.
     ///
     /// If a sync storage needs to be used in an `async` context and it doesn't play well with concurrency —usually
@@ -37,7 +37,7 @@ public extension SyncStorage {
     /// This is not particularly problematic for storage types that live close to the call site i.e. in-memory storage.
     /// Normally you will be using a `Dictionary` or similar collection to keep your stored values around and those are
     /// both fast and do not play well with concurrency.
-    func serialized() -> some AsyncStorage<ID, Value> {
+    func serialized() -> some AsyncCache<ID, Value> {
         SerializedStorage(serializing: self)
     }
 }

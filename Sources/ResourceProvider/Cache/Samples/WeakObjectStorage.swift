@@ -22,7 +22,7 @@ public struct WeakObjectStorage<ID: Hashable, Value: AnyObject> {
     private let weakObjects = NSMapTable<KeyWrapper<ID>, Value>.strongToWeakObjects()
 }
 
-extension WeakObjectStorage: SyncStorage {
+extension WeakObjectStorage: SyncCache {
     public func valueFor(id: ID) -> Value? {
         weakObjects.object(forKey: .init(wrapping: id))
     }

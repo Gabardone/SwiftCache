@@ -27,7 +27,7 @@ public struct AnySyncStorage<ID: Hashable, Value> {
     public let storeValueForID: (Value, ID) -> Void
 }
 
-extension AnySyncStorage: SyncStorage {
+extension AnySyncStorage: SyncCache {
     public func valueFor(id: ID) -> Value? {
         valueForID(id)
     }
@@ -37,7 +37,7 @@ extension AnySyncStorage: SyncStorage {
     }
 }
 
-extension SyncStorage {
+extension SyncCache {
     func eraseToAnyStorage() -> AnySyncStorage<ID, Value> {
         AnySyncStorage { id in
             valueFor(id: id)
@@ -67,7 +67,7 @@ public struct AnyAsyncStorage<ID: Hashable, Value> {
     public let storeValueForID: (Value, ID) async -> Void
 }
 
-extension AnyAsyncStorage: AsyncStorage {
+extension AnyAsyncStorage: AsyncCache {
     public func valueFor(id: ID) async -> Value? {
         await valueForID(id)
     }
@@ -77,7 +77,7 @@ extension AnyAsyncStorage: AsyncStorage {
     }
 }
 
-extension AsyncStorage {
+extension AsyncCache {
     func eraseToAnyStorage() -> AnyAsyncStorage<ID, Value> {
         AnyAsyncStorage { id in
             await valueFor(id: id)

@@ -5,8 +5,8 @@
 //  Created by Óscar Morales Vivó on 8/22/24.
 //
 
-public extension SyncStorage {
-    func mapID<OtherID: Hashable>(_ transform: @escaping (OtherID) -> ID) -> some SyncStorage<OtherID, Value> {
+public extension SyncCache {
+    func mapID<OtherID: Hashable>(_ transform: @escaping (OtherID) -> ID) -> some SyncCache<OtherID, Value> {
         AnySyncStorage { id in
             valueFor(id: transform(id))
         } storeValueForID: { value, id in
@@ -17,7 +17,7 @@ public extension SyncStorage {
     func mapValue<OtherValue>(
         toStorage: @escaping (OtherValue) -> Value,
         fromStorage: @escaping (Value, ID) -> OtherValue?
-    ) -> some SyncStorage<ID, OtherValue> {
+    ) -> some SyncCache<ID, OtherValue> {
         AnySyncStorage { id in
             valueFor(id: id).flatMap { value in
                 fromStorage(value, id)
@@ -30,7 +30,7 @@ public extension SyncStorage {
     func mapValue<OtherValue>(
         toStorage: @escaping (OtherValue) async -> Value,
         fromStorage: @escaping (Value, ID) async -> OtherValue?
-    ) -> some AsyncStorage<ID, OtherValue> {
+    ) -> some AsyncCache<ID, OtherValue> {
         AnyAsyncStorage { id in
             if let storedValue = valueFor(id: id) {
                 await fromStorage(storedValue, id)
@@ -43,8 +43,8 @@ public extension SyncStorage {
     }
 }
 
-public extension AsyncStorage {
-    func mapID<OtherID: Hashable>(_ transform: @escaping (OtherID) -> ID) -> some AsyncStorage<OtherID, Value> {
+public extension AsyncCache {
+    func mapID<OtherID: Hashable>(_ transform: @escaping (OtherID) -> ID) -> some AsyncCache<OtherID, Value> {
         AnyAsyncStorage { id in
             await valueFor(id: transform(id))
         } storeValueForID: { value, id in
@@ -55,7 +55,7 @@ public extension AsyncStorage {
     func mapValue<OtherValue>(
         toStorage: @escaping (OtherValue) -> Value,
         fromStorage: @escaping (Value, ID) -> OtherValue?
-    ) -> some AsyncStorage<ID, OtherValue> {
+    ) -> some AsyncCache<ID, OtherValue> {
         AnyAsyncStorage { id in
             await valueFor(id: id).flatMap { storedValue in
                 fromStorage(storedValue, id)
@@ -68,7 +68,7 @@ public extension AsyncStorage {
     func mapValue<OtherValue>(
         toStorage: @escaping (OtherValue) async -> Value,
         fromStorage: @escaping (Value, ID) async -> OtherValue?
-    ) -> some AsyncStorage<ID, OtherValue> {
+    ) -> some AsyncCache<ID, OtherValue> {
         AnyAsyncStorage { id in
             if let storedValue = await valueFor(id: id) {
                 await fromStorage(storedValue, id)

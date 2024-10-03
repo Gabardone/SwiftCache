@@ -1,5 +1,5 @@
 //
-//  TestProvider.swift
+//  TestCache.swift
 //  swift-resource-provider
 //
 //  Created by Óscar Morales Vivó on 8/22/24.
