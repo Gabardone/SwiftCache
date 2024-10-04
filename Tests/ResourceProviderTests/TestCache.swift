@@ -5,23 +5,59 @@
 //  Created by Óscar Morales Vivó on 8/22/24.
 //
 
-@testable import ResourceProvider
+import ResourceProvider
 
-extension ThrowingAsyncProvider {
-    /// You can interspede a provider chain in tests with one of these to validate that the right id and/or resource
-    /// values are being passed around.
-    /// - Parameters:
-    ///   - idValidation: An optional block that gets the requested ID passed in as a parameter.
-    ///   - valueValidation: An optional block that gets the returned value passed in as a parameter.
+/// Unlike `AnyCache`, it's a reference type and allows for swapping around the functionality so it can be more
+/// readily used in tests.
+class TestCache<ID: Hashable, Value> {
+    var valueForID: (ID) async -> Value?
+
+    var storeValueForID: (ID, Value) async -> Void
+
+    init(valueForID: @escaping (ID) -> Value?, storeValueForID: @escaping (ID, Value) -> Void) {
+        self.valueForID = valueForID
+        self.storeValueForID = storeValueForID
+    }
+}
+
+extension TestCache: AsyncCache {
+    func valueFor(id: ID) async -> Value? {
+        await valueForID(id)
+    }
+
+    func store(value: Value, id: ID) async {
+        await storeValueForID(id, value)
+    }
+}
+
+extension SyncCache {
     func validated(
-        idValidation: ((ID) -> Void)? = nil,
-        valueValidation: ((Value) -> Void)? = nil
-    ) -> ThrowingAsyncProvider {
-        .init { id in
-            idValidation?(id)
-            let result = try await valueForID(id)
-            valueValidation?(result)
+        fetchValidation: ((ID, Value?) -> Void)? = nil,
+        storeValidation: ((ID, Value) -> Void)? = nil
+    ) -> some SyncCache<ID, Value> {
+        AnySyncCache { id in
+            let result = valueFor(id: id)
+            fetchValidation?(id, result)
             return result
+        } storeValueForID: { value, id in
+            storeValidation?(id, value)
+            store(value: value, id: id)
+        }
+    }
+}
+
+extension AsyncCache {
+    func validated(
+        fetchValidation: ((ID, Value?) -> Void)? = nil,
+        storeValidation: ((ID, Value) -> Void)? = nil
+    ) -> some AsyncCache<ID, Value> {
+        AnyAsyncCache { id in
+            let result = await valueFor(id: id)
+            fetchValidation?(id, result)
+            return result
+        } storeValueForID: { value, id in
+            storeValidation?(id, value)
+            await store(value: value, id: id)
         }
     }
 }

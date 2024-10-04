@@ -17,22 +17,22 @@ before:
 - Your API is returning URLs for your data's images.
 - Those images are sizable and take a bit to download.
 - The image URLs are stable:
-  - URL uniquely identifiers an image.
+  - URL uniquely identifies an image.
   - Image pointed at by a given URL will not change.
 - Download may fail because network or because backend.
 - You want to display the UI already and update the images when they arrive.
 
 This library won't help you with displaying _good_ UI while you wait for image downloads. You better convince your
-backend workmates to send in some media metadata like the image size. But as for a reasonably efficient caching system
-for the images you would be writing something like _this_:
+backend workmates to send in some media metadata like the image size. But as for a reasonably efficient fetch and cache
+system for the images you could be writing something like _this_:
 
 ```swift
 import ResourceProvider
 
 struct ImageConversionError: Error {}
 
-func buildImageProvider() -> ThrowingAsyncResourceProvider<URL, UIImage> {
-    ResourceProvider.networkDataSource()
+func buildImageProvider() -> ThrowingAsyncProvider<URL, UIImage> {
+    Provider.networkDataSource()
         .mapValue { data in
             guard let image = UIImage(data: data) else {
                 throw ImageConversionError()
@@ -40,7 +40,7 @@ func buildImageProvider() -> ThrowingAsyncResourceProvider<URL, UIImage> {
 
             return (data, image)
         }
-        .storage(LocalFileDataStorage()
+        .cache(LocalFileDataCache()
             .mapID { url in
                 FilePath(url.lastPathComponent)
             }
@@ -53,8 +53,8 @@ func buildImageProvider() -> ThrowingAsyncResourceProvider<URL, UIImage> {
         .mapValue { _, image in
             image
         }
-        .storage((WeakObjectStorage())
-        .coordinated() // Always finish an `async` cache chain with this one. You usually need only one at the end.
+        .cache((WeakObjectCache())
+        .coordinated() // You should usually finish an `async` provider chain with this one.
 }
 ```
 
@@ -64,13 +64,12 @@ Let's look at all of this step by step…
 ResourceProvider.networkDataSource()
 ```
 
-Every cache needs a source, which is expected to always return a thing. If it can't, it ought to `throw`. If you are
+Every provider needs a source, which is expected to always return a thing. If it can't, it ought to `throw`. If you are
 reasonably sure it will never fail (i.e. if you are generating the values in code based on some parameters so all the
-logic happens under your control) then you can use a non-throwing `ResourceProvider` type and simplify its use at the
-call site.
+logic happens under your control) then you can use a non-throwing `Provider` type and simplify its use at the call site.
 
-In this case we are using the simple `ResourceProvider.networkDataSource()` method that just returns a source that
-downloads the data from the given `URL`, used as its `ID`, and fails (throws) if it can't.
+In this case we are using the simple `Provider.networkDataSource()` method that just returns a source that downloads the
+data from the given `URL`, used as its `ID`, and fails (throws) if the download operation fails for any reason.
 
 ```swift
 .mapValue { data in
@@ -82,35 +81,40 @@ downloads the data from the given `URL`, used as its `ID`, and fails (throws) if
 }
 ```
 
-It turns out that if our `Data` is not good we will be storing it and then returning an error every time we try to
-retrieve it. So it's wiser to validate before storage. To retry, just request the item again after it has failed.
+We don't want to cache the `Data` we got from the network if it turns out it's no good for our display needs. That would
+also lock in an immediate failure on subsequent attempts, where it may not be the expectation (i.e. the data we got the
+first time was corrupted). So it's usually wiser to validate before we start caching.
+
+To retry, just request the item again after it has failed.
 
 We pass down both the data and the generated image so we don't have to re-process it on its way back to the caller.
 
 ```swift
-.storage(LocalFileDataStorage()
+.cache(LocalFileDataCache()
     .mapID { url in
         FilePath(url.lastPathComponent)
     }
     .mapValue { data, _ in
         data
-    } fromStorage: { data in
-        data.flatMap { data in UIImage(data: data).map { (data, $0) } }
+    } fromStorage: { data, _ in
+        UIImage(data: data).map { (data, $0) }
     }
 )
 ```
 
 We would like to store these images in local files, in a cache folder that the system can delete if it needs more space.
-Luckily for us `LocalFileDataStorage` does just that.
+Luckily for us `LocalFileDataCache` does just that.
 
-However, `LocalFileDataStorage` runs on `FilePath` and `Data` since it needs things it can easily write to and read from
-the file system. `mapID` will convert our URLs into something that the file system likes and and `mapValue` will strip
-out the `UIImage` on the way to storage and recreate it if needed.
+However, `LocalFileDataCache` runs on `FilePath` and `Data` since it needs things it can easily write to and read from
+the file system. `mapID` will convert our URLs into something that the file system likes —the sample code assumes that
+the last path component will be unique enough— and `mapValue` will strip out the `UIImage` on the way to cache storage
+and recreate it if needed.
 
 Note that a failure to create a `UIImage` would not be a hard failure since it can still go check for the network data
-again. It's still better in this case to validate before we get here (the step above this one) since that way we won't
-accidentally end up storing bad data in the file system. If we only stored data and didn't validate when fetching from
-storage we would end up stuck with bad data an an exception every time it were requested.
+again. We can just return `nil` and in real logic we would also be logging an error so we can notice the issue.
+
+Finally, both mapping methods take in the requested `id`, which we don't need in this case but can often help either
+encode information contained in the `id` and/or rebuild the original values based on the `id` they represent.
 
 ```swift
 .mapValue { _, image in
@@ -121,10 +125,10 @@ storage we would end up stuck with bad data an an exception every time it were r
 We're done with wrangling raw `Data` from now on, so we just filter it out and pass down the `UIImage`.
 
 ```swift
-.storage((WeakObjectStorage())
+.cache((WeakObjectCache())
 ```
 
-A weak objects storage means we'll have instant access to any object that someone else has fetched before and is already
+A weak objects cache means we'll have instant access to any object that someone else has fetched before and is already
 using, so it's mostly "free". Other in-memory alternatives can be built with whatever cache invalidation approaches may
 work best. `NSCache` sounds good but is rarely what you actually want.
 
@@ -146,10 +150,10 @@ to your friendly neighborhood backend engineer:
 "No"
 
 Your backend friends are too busy working on the CEOs latest flight of fancy: Uber, but for playing D&D. You're gonna
-have to do something about this yourself. Well here comes `ResourceProvider` to save the day…:
+have to do something about this yourself. Well here comes `ResourceProvider` to save the day again…:
 
 ```swift
-func buildThumbnailProvider() -> ThrowingAsyncResourceProvider<URL, UIImage> {
+func buildThumbnailProvider() -> ThrowingAsyncProvider<URL, UIImage> {
     buildImageProvider()
         .mapValue { image in
             if image.isLargerThanThumbnail {
@@ -158,14 +162,14 @@ func buildThumbnailProvider() -> ThrowingAsyncResourceProvider<URL, UIImage> {
                 return image
             }
         }
-        .storage((WeakObjectStorage())
+        .cache((WeakObjectCache())
         .coordinated()
 }
 ```
 
 This should help. And if it doesn't help _enough_, you can build up something more sophisticated the same way. Your
-cache could literally return a publisher that returns the large image first and the thumbnail once calculated or a
-different storage policy may work better for this use case.
+provider could literally return a publisher that returns the large image first and the thumbnail once calculated or a
+different caching policy may work better for this use case.
 
 ## Tips & Tricks
 
@@ -178,5 +182,5 @@ solving the problems that `ResourceProvider` is meant to help with, order of exe
 never one, which makes `actors` a perfect fit for shielding against reentrancy issues. And remember that the basic
 avoidance of repeated work for the same ID is already taken care of by `coordinated()`.
 - Bears repeating: always finish off an `AsyncProvider` or `ThrowingAsyncProvider` with `coordinated()`
-- The given components (`Provider.networkSource`, `LocalFileDataCache` etc.) are purposefully the dumbest
+- The given components (`Provider.networkDataSource`, `LocalFileDataCache` etc.) are purposefully the dumbest
 implementations that work. Feel free to copy/paste them and use more sophisticated logic if your use case warrants it.

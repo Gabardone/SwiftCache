@@ -1,5 +1,5 @@
 //
-//  WeakObjectStorage.swift
+//  WeakObjectCache.swift
 //  swift-resource-provider
 //
 //  Created by Óscar Morales Vivó on 4/23/23.
@@ -8,13 +8,13 @@
 import Foundation
 
 /**
- In-memory `weak` reference storage for objects.
+ In-memory `weak` reference cache for objects.
 
- Since `weak` references can only be used for reference types, this won't work for value types.
+ Since `weak` references can only be used for reference types, this cache only accepts those.
 
  The type is an `actor` as to ensure thread safety for access to its internal storage.
  */
-public struct WeakObjectStorage<ID: Hashable, Value: AnyObject> {
+public struct WeakObjectCache<ID: Hashable, Value: AnyObject> {
     public init() {}
 
     // MARK: - Stored Properties
@@ -22,7 +22,7 @@ public struct WeakObjectStorage<ID: Hashable, Value: AnyObject> {
     private let weakObjects = NSMapTable<KeyWrapper<ID>, Value>.strongToWeakObjects()
 }
 
-extension WeakObjectStorage: SyncCache {
+extension WeakObjectCache: SyncCache {
     public func valueFor(id: ID) -> Value? {
         weakObjects.object(forKey: .init(wrapping: id))
     }

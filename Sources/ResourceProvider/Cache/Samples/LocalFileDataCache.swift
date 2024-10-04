@@ -1,5 +1,5 @@
 //
-//  LocalFileDataStorage.swift
+//  LocalFileDataCache.swift
 //  swift-resource-provider
 //
 //  Created by Óscar Morales Vivó on 8/22/24.
@@ -9,15 +9,15 @@ import Foundation
 import System
 
 /**
- A simple storage type that stores data in a local cache folder in the local type system.
+ A simple cache type that stores data in a local cache folder in the local type system.
 
- The storage is hardcoded to `ID == FilePath` and `Value == Data`. You will normally want to convert to/from your
- cache's `ID` and `Value` using `mapID` and `mapValue` respectively.
+ The cache is hardcoded to `ID == FilePath` and `Value == Data`. You will normally want to convert to/from your
+ provider's `ID` and `Value` using `mapID` and `mapValue` respectively.
 
  Availability limited by `FilePath` API only being declared in later OS versions.
  */
 @available(macOS 12.0, iOS 15.0, watchOS 8.0, tvOS 15.0, *)
-public struct LocalFileDataStorage {
+public struct LocalFileDataCache {
     private let storageDirectory: FilePath
 
     private let fileManager: FileManager
@@ -28,7 +28,7 @@ public struct LocalFileDataStorage {
         // Calculate the storageDirecotry.
         let cacheDirectory = fileManager.urls(for: .cachesDirectory, in: .userDomainMask).first ?? {
             Provider.logger.warning("""
-            User cache directory not found, using temporary directory for local file data storage
+            User cache directory not found, using temporary directory for local file data cache
             """)
             return fileManager.temporaryDirectory
         }()
@@ -39,7 +39,7 @@ public struct LocalFileDataStorage {
 }
 
 @available(macOS 12.0, iOS 15.0, watchOS 8.0, tvOS 15.0, *)
-extension LocalFileDataStorage: SyncCache {
+extension LocalFileDataCache: SyncCache {
     public func valueFor(id: FilePath) -> Data? {
         fileManager.contents(atPath: storageDirectory.appending(id.components).description)
     }
