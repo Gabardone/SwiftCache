@@ -14,6 +14,8 @@ import System
  The cache is hardcoded to `ID == FilePath` and `Value == Data`. You will normally want to convert to/from your
  provider's `ID` and `Value` using `mapID` and `mapValue` respectively.
 
+ The cache is synchronous and it can also can be used safely from a concurrent context.
+
  Availability limited by `FilePath` API only being declared in later OS versions.
  */
 @available(macOS 12.0, iOS 15.0, watchOS 8.0, tvOS 15.0, *)
@@ -22,6 +24,15 @@ public struct LocalFileDataCache {
 
     private let fileManager: FileManager
 
+    /**
+     Initialize a local file data cache.
+
+     The files will be created in a directory whose location is determined by `storageIdentifier`. If needed, a file
+     manager other than `FileManager.default` can be used.
+     - Parameters:
+       - storageIdentifier: An identifier that is used to build the directory where the local data files will be stored.
+       - fileManager: A `Foundation.FileManager`. Defaults to the… default one.
+     */
     private init(storageIdentifier: FilePath, fileManager: FileManager = .default) {
         self.fileManager = fileManager
 

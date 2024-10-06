@@ -12,7 +12,8 @@ import Foundation
 
  Since `weak` references can only be used for reference types, this cache only accepts those.
 
- The type is an `actor` as to ensure thread safety for access to its internal storage.
+ The type is declared synchronous since it's fast and simple enough to be used synchronously, use `serialized` to use in
+ a concurrent context.
  */
 public struct WeakObjectCache<ID: Hashable, Value: AnyObject> {
     public init() {}
@@ -33,8 +34,8 @@ extension WeakObjectCache: SyncCache {
 }
 
 /**
- A simple, private wrapper type so non-object and non-Obj-C types can be used with a `NSMapTable`. An implementation
- detail.
+ A simple, private wrapper type so value types and reference types that don't inherit from `NSObject` can be used as
+ keys for a `NSMapTable`. An implementation detail.
  */
 private class KeyWrapper<ID: Hashable>: NSObject, NSCopying {
     func copy(with _: NSZone? = nil) -> Any {
