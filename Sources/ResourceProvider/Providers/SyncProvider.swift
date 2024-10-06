@@ -6,28 +6,30 @@
 //
 
 /**
- A synchronous, non-failable cache.
+ A resouce provider that returns values synchronously.
 
- This type will return its values synchronously, and is expected to always obtain them successfully. Goot examples of
- use for this would be thumbnail generation for components that are either not run from the main thread or indirectly
- load outside it.
-
- The ID used to identify cached values is required to adopt `Hashable` as to help guarantee that the same value ID will
- lead to the same value quickly and repeatably.
-
- The type of values that the cache manages can be most anything.
+ A `SyncProvider` doesn't allow for failure in value retrieval, so it's best used for cases where the values are
+ generated. Examples of use would be:
+ - To manage quick to generate large object (i.e. images) where we want to keep around only the ones we're using, with
+ a `WeakObjectCache`.
+ - To abstract away old synchronous APIs like AppKit document facilities where we are also limited in being able to make
+ things asynchronous.
  */
 public struct SyncProvider<ID: Hashable, Value> {
     /**
-     Returns the cached value for the given value ID in the calling cache. A sync cache is expected to always succeed
-     in producing a value, use `ThrowingSyncProvider` if the operation may fail.
-     - Parameter ID: The cache ID for the resource.
+     Synchronously returns the value for the given `id`.
+     - Parameter ID: The ID for the resource.
      - Returns: The value for the given `ID`
      */
     public var valueForID: (ID) -> Value
 }
 
 public extension Provider {
+    /**
+     Builds a synchronous provider source.
+     - Parameter source: A block that generates values based on a given `ID`.
+     - Returns: A synchronous provider that generates its values by running the given block.
+     */
     static func source<ID: Hashable, Value>(_ source: @escaping (ID) -> Value) -> SyncProvider<ID, Value> {
         SyncProvider(valueForID: source)
     }
