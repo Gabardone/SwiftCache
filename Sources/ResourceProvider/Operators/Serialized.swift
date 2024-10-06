@@ -20,15 +20,13 @@ private actor SyncProviderSerializer<ID: Hashable, Value> {
 }
 
 public extension SyncProvider {
-    /// Returns an async wrapper for a sync provider that guarantees serialization.
-    ///
-    /// If a sync storage needs to be used in an `async` context and it doesn't play well with concurrency —usually
-    /// because you want to avoid data races with its state management— you will want to wrap it in one of these before
-    /// attaching to a storage cache.
-    ///
-    /// This is not particularly problematic for storage types that live close to the call site i.e. in-memory storage.
-    /// Normally you will be using a `Dictionary` or similar collection to keep your stored values around and those are
-    /// both fast and do not play well with concurrency.
+    /**
+     Returns a wrapper for a sync provider that guarantees serialization.
+
+     If a sync provider needs to be used in an `async` context and it doesn't play well with concurrency —usually
+     because you want to avoid data races with its state management— you will want to wrap it in one of these.
+     - Returns: An `async` provider version of the calling `SyncProvider` that runs its calls serially.
+     */
     func serialized() -> AsyncProvider<ID, Value> {
         let serializedProvider = SyncProviderSerializer(serializing: self)
 
@@ -53,15 +51,13 @@ private actor ThrowingSyncProviderSerializer<ID: Hashable, Value> {
 }
 
 public extension ThrowingSyncProvider {
-    /// Returns an async wrapper for a sync provider that guarantees serialization.
-    ///
-    /// If a sync storage needs to be used in an `async` context and it doesn't play well with concurrency —usually
-    /// because you want to avoid data races with its state management— you will want to wrap it in one of these before
-    /// attaching to a storage cache.
-    ///
-    /// This is not particularly problematic for storage types that live close to the call site i.e. in-memory storage.
-    /// Normally you will be using a `Dictionary` or similar collection to keep your stored values around and those are
-    /// both fast and do not play well with concurrency.
+    /**
+     Returns a wrapper for a throwing sync provider that guarantees serialization.
+
+     If a throwing sync provider needs to be used in an `async` context and it doesn't play well with concurrency
+     —usually because you want to avoid data races with its state management— you will want to wrap it in one of these.
+     - Returns: A throwing `async` provider version of the calling `ThrowingSyncProvider` that runs its calls serially.
+     */
     func serialized() -> ThrowingAsyncProvider<ID, Value> {
         let serializedProvider = ThrowingSyncProviderSerializer(serializing: self)
 

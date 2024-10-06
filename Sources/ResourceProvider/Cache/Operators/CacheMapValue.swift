@@ -13,12 +13,12 @@ public extension SyncCache {
      mapping methods have the id passed in, where you want to get the outside `ID` coming in from the provider so you
      can use it to encode or reconstitute any data lost in the id translation.
      - Parameters:
-       - toStorage: A block that translates an id from `OtherValue` to `Self.Value` so it can be stored by the cache. It
-     gets both the value and the associated id passed in. If translation is impossible or some other error occurs the
+       - toStorage: A block that translates a value from `OtherValue` to `Self.Value` so it can be stored by the cache.
+     It gets both the value and the associated id passed in. If translation is impossible or some other error occurs the
      block can return `nil`
        - fromStorage: A block that translates a cached value to `OtherValue`. It gets both the cached value and the
      associated id passed in. If translation is impossible or some other error occurs the block can return `nil`
-     - Returns: A cache that takes `OtherID` as its `ID` type.
+     - Returns: A cache that takes `OtherValue` as its `Value` type.
      */
     func mapValue<OtherValue>(
         toStorage: @escaping (OtherValue) -> Value?,
@@ -42,12 +42,12 @@ public extension SyncCache {
      mapping methods have the id passed in, where you want to get the outside `ID` coming in from the provider so you
      can use it to encode or reconstitute any data lost in the id translation.
      - Parameters:
-       - toStorage: A block that translates an id from `OtherValue` to `Self.Value` so it can be stored by the cache. It
-     gets both the value and the associated id passed in. If translation is impossible or some other error occurs the
+       - toStorage: A block that translates a value from `OtherValue` to `Self.Value` so it can be stored by the cache.
+     It gets both the value and the associated id passed in. If translation is impossible or some other error occurs the
      block can return `nil`
        - fromStorage: A block that translates a cached value to `OtherValue`. It gets both the cached value and the
      associated id passed in. If translation is impossible or some other error occurs the block can return `nil`
-     - Returns: A cache that takes `OtherID` as its `ID` type.
+     - Returns: A cache that takes `OtherValue` as its `Value` type.
      */
     func mapValue<OtherValue>(
         toStorage: @escaping (OtherValue) async -> Value?,
@@ -75,12 +75,12 @@ public extension AsyncCache {
      mapping methods have the id passed in, where you want to get the outside `ID` coming in from the provider so you
      can use it to encode or reconstitute any data lost in the id translation.
      - Parameters:
-       - toStorage: A block that translates an id from `OtherValue` to `Self.Value` so it can be stored by the cache. It
-     gets both the value and the associated id passed in. If translation is impossible or some other error occurs the
+       - toStorage: A block that translates a value from `OtherValue` to `Self.Value` so it can be stored by the cache.
+     It gets both the value and the associated id passed in. If translation is impossible or some other error occurs the
      block can return `nil`
        - fromStorage: A block that translates a cached value to `OtherValue`. It gets both the cached value and the
      associated id passed in. If translation is impossible or some other error occurs the block can return `nil`
-     - Returns: A cache that takes `OtherID` as its `ID` type.
+     - Returns: A cache that takes `OtherValue` as its `Value` type.
      */
     func mapValue<OtherValue>(
         toStorage: @escaping (OtherValue) -> Value?,
@@ -104,12 +104,12 @@ public extension AsyncCache {
      mapping methods have the id passed in, where you want to get the outside `ID` coming in from the provider so you
      can use it to encode or reconstitute any data lost in the id translation.
      - Parameters:
-       - toStorage: A block that translates an id from `OtherValue` to `Self.Value` so it can be stored by the cache. It
-     gets both the value and the associated id passed in. If translation is impossible or some other error occurs the
+       - toStorage: A block that translates a value from `OtherValue` to `Self.Value` so it can be stored by the cache.
+     It gets both the value and the associated id passed in. If translation is impossible or some other error occurs the
      block can return `nil`
        - fromStorage: A block that translates a cached value to `OtherValue`. It gets both the cached value and the
      associated id passed in. If translation is impossible or some other error occurs the block can return `nil`
-     - Returns: A cache that takes `OtherID` as its `ID` type.
+     - Returns: A cache that takes `OtherValue` as its `Value` type.
      */
     func mapValue<OtherValue>(
         toStorage: @escaping (OtherValue) async -> Value?,
