@@ -72,8 +72,8 @@ public extension ThrowingSyncProvider {
      when the root provider throws an exception and will need to either return a value, rethrow or throw a new error.
 
      This method necessarily converts a synchronous provider into an asynchronous one.
-          - Parameter catcher: A block that gets errors thrown and returns a new value or throws. The id for the requested
-     value that caused the exception is also passed in.
+          - Parameter catcher: A block that gets errors thrown and returns a new value or throws. The id for the
+     requested value that caused the exception is also passed in.
      - Returns: An async provider that catches the exceptions thrown by the caller.
      */
     func `catch`(_ catcher: @escaping (Error, ID) async throws -> Value) -> ThrowingAsyncProvider<ID, Value> {
