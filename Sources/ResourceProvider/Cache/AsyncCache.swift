@@ -38,7 +38,7 @@ public protocol AsyncCache<ID, Value> {
      later it will be exactly the same value passed in this method.
      - Parameters:
        - value: The value to store.
-       - id: Id associated with the value to store.
+       - id: ID associated with the value to store.
      */
     func store(value: Value, id: ID) async
 
