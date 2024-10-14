@@ -24,7 +24,7 @@ public protocol AsyncCache<ID, Value> {
     /**
      Returns the value for the given `id`, if present.
 
-     The method will return `nil` if the value is not being stored by the cache, whether because it was never stored or
+     The method will return `nil` if the value is not being stored by the cache, either because it was never stored or
      because it was invalidated at some point.
      - Parameter id: The id whose potentially cached value we want.
      - Returns: The value for `id`, if currently stored in the cache, or `nil` if not.
