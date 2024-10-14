@@ -125,7 +125,7 @@ encode information contained in the `id` and/or rebuild the original values base
 We're done with wrangling raw `Data` from now on, so we just filter it out and pass down the `UIImage`.
 
 ```swift
-.cache((WeakObjectCache())
+.cache(WeakObjectCache())
 ```
 
 A weak objects cache means we'll have instant access to any object that someone else has fetched before and is already
