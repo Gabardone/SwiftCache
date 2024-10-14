@@ -9,6 +9,8 @@ sophisticated workflows including but not limited to caching steps.
 As with many similar frameworks and language facilities, this doesn't make these complicated issues simple but it ought
 to help organize them in a far more modular and testable way.
 
+You can find the full module API documentation at the [Swift Package Index documentation archive](https://swiftpackageindex.com/Gabardone/swift-resource-provider/documentation)
+
 ## Example
 
 Suppose you are working on your CRUD app and find yourself in the following scenario, which no one has encountered
@@ -31,7 +33,7 @@ import ResourceProvider
 
 struct ImageConversionError: Error {}
 
-func buildImageProvider() -> ThrowingAsyncProvider<URL, UIImage> {
+func makeImageProvider() -> ThrowingAsyncProvider<URL, UIImage> {
     Provider.networkDataSource()
         .mapValue { data in
             guard let image = UIImage(data: data) else {
@@ -54,7 +56,7 @@ func buildImageProvider() -> ThrowingAsyncProvider<URL, UIImage> {
             image
         }
         .cache(WeakObjectCache())
-        .coordinated() // You should usually finish an `async` provider chain with this one.
+        .coordinated() // Finish an `async` provider chain with this to avoid accidentally doing work twice for same ID.
 }
 ```
 
@@ -153,8 +155,8 @@ Your backend friends are too busy working on the CEOs latest flight of fancy: Ub
 have to do something about this yourself. Well here comes `ResourceProvider` to save the day again…:
 
 ```swift
-func buildThumbnailProvider() -> ThrowingAsyncProvider<URL, UIImage> {
-    buildImageProvider()
+func makeThumbnailProvider() -> ThrowingAsyncProvider<URL, UIImage> {
+    makeImageProvider()
         .mapValue { image in
             if image.isLargerThanThumbnail {
                 image.downscaled(size: thumbnailSize)

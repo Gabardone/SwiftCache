@@ -19,7 +19,7 @@ final class ProviderChainTests: XCTestCase {
     /**
      We're using a mock of a three-level caching provider (in-memory cache/local file cache/network fetch).
      */
-    private static func buildImageProvider(
+    private static func makeImageProvider(
         preloadedWeakObjectCache: WeakObjectCache<URL, XXImage>? = nil,
         source: @escaping (URL) async throws -> Data = { _ in
             XCTFail("Unexpected call to network source.")
@@ -78,7 +78,7 @@ final class ProviderChainTests: XCTestCase {
         inMemoryCache.store(value: XXImage.sampleImage, id: Self.dummyURL)
         let inMemoryFetchExpectation = expectation(description: "In-memory cache fetch was called as expected.")
 
-        let imageProvider = Self.buildImageProvider(
+        let imageProvider = Self.makeImageProvider(
             preloadedWeakObjectCache: inMemoryCache,
             inMemoryCacheFetchValidation: { id, value in
                 inMemoryFetchExpectation.fulfill()
@@ -100,7 +100,7 @@ final class ProviderChainTests: XCTestCase {
         let inMemoryFetchExpectation = expectation(description: "In-memory cache fetch was called as expected.")
         let inMemoryStoreExpectation = expectation(description: "In-memory cache store was called as expected.")
 
-        let imageProvider = Self.buildImageProvider(localFileCacheFetch: { filePath in
+        let imageProvider = Self.makeImageProvider(localFileCacheFetch: { filePath in
             localFileCacheFetchExpectation.fulfill()
             XCTAssertEqual(filePath, .init(Self.dummyURL.lastPathComponent))
             return XXImage.sampleImageData
@@ -131,7 +131,7 @@ final class ProviderChainTests: XCTestCase {
         let inMemoryFetchExpectation = expectation(description: "In-memory cache fetch was called as expected.")
         let inMemoryStoreExpectation = expectation(description: "In-memory cache store was called as expected.")
 
-        let imageProvider = Self.buildImageProvider { url in
+        let imageProvider = Self.makeImageProvider { url in
             networkSourceExpectation.fulfill()
             XCTAssertEqual(url, Self.dummyURL)
             return XXImage.sampleImageData
@@ -176,7 +176,7 @@ final class ProviderChainTests: XCTestCase {
         let localFileCacheFetchExpectation = expectation(description: "Local cache fetch was called as expected.")
         let inMemoryFetchExpectation = expectation(description: "In-memory cache fetch was called as expected.")
 
-        let imageProvider = Self.buildImageProvider { url in
+        let imageProvider = Self.makeImageProvider { url in
             networkSourceExpectation.fulfill()
             XCTAssertEqual(url, Self.dummyURL)
             return Self.badImageData
@@ -215,7 +215,7 @@ final class ProviderChainTests: XCTestCase {
         let inMemoryStoreExpectation = expectation(description: "In-memory cache store was called as expected.")
 
         var firstPass = true
-        let imageProvider = Self.buildImageProvider { url in
+        let imageProvider = Self.makeImageProvider { url in
             networkSourceExpectation.fulfill()
             XCTAssertEqual(url, Self.dummyURL)
             if firstPass {
