@@ -53,7 +53,7 @@ func buildImageProvider() -> ThrowingAsyncProvider<URL, UIImage> {
         .mapValue { _, image in
             image
         }
-        .cache((WeakObjectCache())
+        .cache(WeakObjectCache())
         .coordinated() // You should usually finish an `async` provider chain with this one.
 }
 ```
