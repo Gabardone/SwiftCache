@@ -162,7 +162,7 @@ func buildThumbnailProvider() -> ThrowingAsyncProvider<URL, UIImage> {
                 return image
             }
         }
-        .cache((WeakObjectCache())
+        .cache(WeakObjectCache())
         .coordinated()
 }
 ```
